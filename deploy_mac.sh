@@ -1,8 +1,8 @@
-#!/bin/sh
-set -eu
-# Export APPLE_SIGNING_IDENTITY, APPLE_ID, APPLE_PASSWORD and APPLE_TEAM_ID
-# in your shell before running the signed and notarized macOS builds.
 export CI=true
+export APPLE_SIGNING_IDENTITY="Developer ID Application: KIYOHIRO KAWAMURA (5H7KW7PC7C)"
+export APPLE_ID="kyorohiro@gmail.com"
+#export APPLE_PASSWORD="<password>"
+export APPLE_TEAM_ID="5H7KW7PC7C"
 
-npx tauri build --target x86_64-apple-darwin --bundles app,dmg -- --locked
-npx tauri build --target aarch64-apple-darwin --bundles app,dmg -- --locked
+npx tauri build --target x86_64-apple-darwin --bundles app,dmg
+npx tauri build --target aarch64-apple-darwin --bundles app,dmg
