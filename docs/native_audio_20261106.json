@@ -1,0 +1,26 @@
+{
+  "date": "2026-11-06",
+  "passed": true,
+  "command": "cargo test --manifest-path src-tauri/Cargo.toml --locked --offline native_device_continuous -- --ignored --nocapture",
+  "scope": "Actual Rust CPAL service output: 30 seconds of silence on the system default CoreAudio output.",
+  "inputSampleRate": 48000,
+  "deviceSampleRate": 48000,
+  "packetFrames": 512,
+  "credits": 9,
+  "prefillPackets": 4,
+  "elapsedSeconds": 30.004199,
+  "injectedProducerDelayMs": 25,
+  "injectedProducerDelays": 29,
+  "longestProducerWriteGapMs": 54.686375,
+  "consumedFrames": 1440256,
+  "receivedFrames": 1444352,
+  "queuedFrames": 4096,
+  "underruns": 0,
+  "error": null,
+  "limitations": [
+    "Silent output; not a human listening test.",
+    "Direct Rust service test; not continuous WebView-to-native IPC playback.",
+    "Does not establish background, pinned-window or prolonged playback stability.",
+    "The low-level audible tone smoke test was not run."
+  ]
+}

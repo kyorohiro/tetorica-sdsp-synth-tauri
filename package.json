@@ -1,0 +1,27 @@
+{
+  "name": "tetorica-sdsp-synth-tauri",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "tauri dev --no-dev-server",
+    "build": "tauri build",
+    "import:release": "python3 scripts/import_release.py",
+    "test": "python3 -m unittest discover -s tests && node --test tests/*.test.cjs",
+    "test:browser": "node scripts/check-desktop-browser.cjs",
+    "tauri": "tauri",
+    "icons": "node scripts/generate-icons.mjs",
+    "record:edits": "python3 scripts/import_release.py --record-local-changes",
+    "test:native": "cargo test --manifest-path src-tauri/Cargo.toml --locked",
+    "test:audio-transport": "node scripts/check-audio-transport.cjs"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "2.11.5",
+    "playwright": "1.63.0"
+  },
+  "license": "BSD-3-Clause",
+  "description": "Tetorica S-DSP Synth desktop app with editable Web sources and native audio output",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kyorohiro/tetorica-sdsp-synth-tauri.git"
+  }
+}

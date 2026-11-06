@@ -1,0 +1,58 @@
+{
+  "date": "2026-11-06",
+  "passed": true,
+  "desktopVersion": "0.0.1",
+  "webVersion": "0.0.7",
+  "webArchiveSha256": "3a600c50ded29dc98e9bc923b3a722ee06435beb6e4861f2075b89f4ef4c726c",
+  "builds": [
+    {
+      "target": "aarch64-apple-darwin",
+      "command": "npm run build -- --bundles app --no-sign -- --locked --offline",
+      "bundle": "src-tauri/target/release/bundle/macos/Tetorica S-DSP Synth.app",
+      "binary": "src-tauri/target/release/bundle/macos/Tetorica S-DSP Synth.app/Contents/MacOS/tetorica-sdsp-synth-tauri: Mach-O 64-bit executable arm64",
+      "sha256": "74a859d4d9c6fe5945b35c6f276d3d37b0ce02e99c075dcaad406a5161eca6fe",
+      "bytes": 10423744,
+      "developerIdSigning": false,
+      "launched": true
+    },
+    {
+      "target": "x86_64-apple-darwin",
+      "command": "npm run build -- --target x86_64-apple-darwin --bundles app --no-sign -- --locked --offline",
+      "bundle": "src-tauri/target/x86_64-apple-darwin/release/bundle/macos/Tetorica S-DSP Synth.app",
+      "binary": "src-tauri/target/x86_64-apple-darwin/release/bundle/macos/Tetorica S-DSP Synth.app/Contents/MacOS/tetorica-sdsp-synth-tauri: Mach-O 64-bit executable x86_64",
+      "sha256": "5a2f8235c5a08628825fadc8608da6fbb4cf0832cef20b284efd827e679cbbd5",
+      "bytes": 10663460,
+      "developerIdSigning": false,
+      "launched": false
+    }
+  ],
+  "inputs": {
+    "package.json": "b91414cf82f07353118226cd5b175b758839a03b1761724c048cf29c529f0a92",
+    "package-lock.json": "626a095a0945532755bdeb9ea5a54303bd3a271e58ea689be8f477c2ce477670",
+    "release.lock.json": "5bd1deec8069c8811f10cb1d7555fdfcce6433b4f69c90370e1d31af31cd48c8",
+    "src-tauri/Cargo.toml": "42e1553728703185549bfcc4f409926ec05a613972c019d23e5ad2cf209615a8",
+    "src-tauri/Cargo.lock": "b008d73e8c2f97e8b863bc4324f9f5e5e25b78c45384bab42d7841cf4ade847d",
+    "src-tauri/tauri.conf.json": "92f842df7a68a80eb9ca542c2ed3d43d8db99847c0e501b31b03743ee1aba3d2",
+    "src-tauri/src/main.rs": "c2159fbd604083dff5a9ad247eb65c00f1263ec3422e9013bbbdaec1b874f10a",
+    "src-tauri/src/audio.rs": "b5597d0c1a5c271b80fca220917eec00e0e592efbf6c1dd6f852ddb295bfb629",
+    "desktop/desktop-interface.js": "f0e75d227b1edb0c599c4f173bc3bff06469465d708758bea4ed4b6f478b0dd1",
+    "desktop/audio-interface.js": "eb581a5a59e3cd96be0af96f015a1651d65aaf6b81797f4f4f2a100ddc799726",
+    "desktop/audio-worklet.js": "d53d1b7909390406e48467485aefb8c835613b1cb7ed7d1f20cc94dd4aa8fd71"
+  },
+  "nativeGuiInspection": {
+    "target": "aarch64-apple-darwin",
+    "origin": "tauri://localhost",
+    "title": "Tetorica S-DSP Synth",
+    "observed": [
+      "Menu",
+      "Pin window on top",
+      "Enable audio",
+      "Import PMON pairs",
+      "Import Echo / FIR settings",
+      "BRR / Noise source controls",
+      "Keyboard"
+    ],
+    "scope": "Application launched and native accessibility tree inspected. No physical Pin toggle, device switch, file dialog interaction or human listening was inferred."
+  },
+  "hostedCiRun": false
+}
