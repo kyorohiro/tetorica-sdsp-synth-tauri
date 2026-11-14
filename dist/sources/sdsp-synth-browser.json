@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "product": "Tetorica S-DSP Synth",
   "productId": "tetorica-sdsp-synth",
-  "version": "0.0.7",
+  "version": "dev",
   "builder": {
     "name": "source-copy",
     "minify": false,
@@ -16,42 +16,301 @@
     {
       "path": "synth-snes/synth.js",
       "sourcePath": "docs/synth-snes/synth.js",
-      "bytes": 22686,
-      "sha256": "a32ab58e08f64f563074d26fd1598eec78af8f21d78110871095ee4682fad35b",
+      "bytes": 33622,
+      "sha256": "009661c0c32b7f7d0b33f20626aabf687f08af4e13900d3e23d5be808ddf12e0",
       "localImports": [
         "../synth-spu/spu_synth_visualizer.js",
         "../synth/synth_keyboard.js",
-        "./audio.js",
+        "./audio.js?v=spc-channel-edit-1",
         "./audio_import.js",
-        "./editor.js",
-        "./preset.js",
-        "./spc_browser.js",
-        "./spc_import.js"
+        "./channel_view.js?v=shared-channel-editor-1",
+        "./code_client.js",
+        "./code_host.js?v=spc-menu-priority-1",
+        "./editor.js?v=adsr-graph-1",
+        "./looper.js",
+        "./looper_controls.js",
+        "./menu.js",
+        "./mixer.js",
+        "./preset.js?v=sdsp-live-wave-1",
+        "./song_controls.js?v=spc-seek-controls-1",
+        "./song_player.js?v=shared-channel-editor-1",
+        "./spc_browser.js?v=spc-channel-edit-1",
+        "./spc_import.js?v=spc-sample-inspection-1",
+        "./spc_live.js?v=sound-library-1"
       ]
     },
     {
       "path": "synth-snes/processor.js",
       "sourcePath": "docs/synth-snes/processor.js",
-      "bytes": 4096,
-      "sha256": "d7195b279c31a4ab56cc5631440333945e56641d4c2cca1cdc2e1d4f4e3b13f8",
+      "bytes": 4128,
+      "sha256": "496805da0c689dfe3941c6c7112a76ce3a5c0619e5c66415c7ad706b0c6bff1e",
       "localImports": [
         "../generated/spc_wasm.js",
         "../js/spc.js",
         "../js/spc_resampler.js",
-        "./instrument.js"
+        "./instrument.js?v=channel-mixer-1"
       ]
     },
     {
       "path": "synth-snes/synth.css",
       "sourcePath": "docs/synth-snes/synth.css",
-      "bytes": 10331,
-      "sha256": "8ed321a222648e22291b54ce17b7bfa868aa6f4afa3d9a7ffe3c0b794862cf32",
+      "bytes": 26263,
+      "sha256": "b3646d41c1d6ab63c448cb570af433b39dfa6a99762e4cd61bb4c78c3d49e330",
       "localImports": [
         "../synth-spu/synth.css"
       ]
+    },
+    {
+      "path": "js/native-fx-worklet.js",
+      "sourcePath": "docs/js/native-fx-worklet.js",
+      "bytes": 8783,
+      "sha256": "d490b7197cdc139314479ad5048725d62e23d12664b126b12dfebb209ef3c4ac",
+      "localImports": [
+        "./native_fx_engine.js?v=audio-stability-2",
+        "./native_fx_graph.js",
+        "./playground_performance_queue.js"
+      ]
+    },
+    {
+      "path": "js/spc-worklet.js",
+      "sourcePath": "docs/js/spc-worklet.js",
+      "bytes": 14719,
+      "sha256": "b4583dd9b95401e77c93a7c342530a4f754cb6b74e578f269b59978e1ecdb025",
+      "localImports": [
+        "../generated/spc_wasm.js?v=spc-voice-edit-1",
+        "./spc.js?v=spc-voice-edit-1",
+        "./spc_resampler.js"
+      ]
+    },
+    {
+      "path": "synth-snes/looper-processor.js",
+      "sourcePath": "docs/synth-snes/looper-processor.js",
+      "bytes": 2121,
+      "sha256": "39f97aaa8691aca903302b741e18962b9c359f84c83b545e79a54e465d4f7d7b",
+      "localImports": []
     }
   ],
   "modules": [
+    {
+      "path": "js/custom_fx.js",
+      "sourcePath": "docs/js/custom_fx.js",
+      "bytes": 5764,
+      "sha256": "f719e32f063bdbdb4d7cb9bb7aff1087dde2152ade7449b2819f2d3a6cc4424e",
+      "localImports": []
+    },
+    {
+      "path": "js/megasynth-fm-presets.js",
+      "sourcePath": "docs/js/megasynth-fm-presets.js",
+      "bytes": 6954,
+      "sha256": "daf3c42d3d6b1777d5729073eed9edf4d96a78d55e22fedfad394137d41bb06c",
+      "localImports": []
+    },
+    {
+      "path": "js/native-fx-worklet.js",
+      "sourcePath": "docs/js/native-fx-worklet.js",
+      "bytes": 8783,
+      "sha256": "d490b7197cdc139314479ad5048725d62e23d12664b126b12dfebb209ef3c4ac",
+      "localImports": [
+        "./native_fx_engine.js?v=audio-stability-2",
+        "./native_fx_graph.js",
+        "./playground_performance_queue.js"
+      ]
+    },
+    {
+      "path": "js/native_fx.js",
+      "sourcePath": "docs/js/native_fx.js",
+      "bytes": 7922,
+      "sha256": "42cf0829acbc3cf779a5fc2005a6c1ac1ecfee92075f468da968c59b0fe4e27f",
+      "localImports": []
+    },
+    {
+      "path": "js/native_fx_engine.js",
+      "sourcePath": "docs/js/native_fx_engine.js",
+      "bytes": 7061,
+      "sha256": "8f9ba9ff857a34dc46b2646d77838e79fd48cdf4d2d4f3caf7176091a575967f",
+      "localImports": [
+        "./custom_fx.js?v=audio-stability-2",
+        "./native_fx.js",
+        "./native_fx_graph.js",
+        "./native_sample_processor.js"
+      ]
+    },
+    {
+      "path": "js/native_fx_graph.js",
+      "sourcePath": "docs/js/native_fx_graph.js",
+      "bytes": 3612,
+      "sha256": "fc9345f3a1c499b6fb5d2a893ed2c31c92394397e1a0ccaa343fc7b722e64ccf",
+      "localImports": []
+    },
+    {
+      "path": "js/native_fx_rack.js",
+      "sourcePath": "docs/js/native_fx_rack.js",
+      "bytes": 2128,
+      "sha256": "92e57a539409d7139e4820d275fedff5e9862765f34a5cb3b3c07c67608429a5",
+      "localImports": [
+        "./native_fx.js?v=prepared-fx-rerun-2",
+        "./native_noise.js",
+        "./native_sample.js?v=audio-stability-2"
+      ]
+    },
+    {
+      "path": "js/native_noise.js",
+      "sourcePath": "docs/js/native_noise.js",
+      "bytes": 4209,
+      "sha256": "c0ce2bdb16f1aed62e6b83f1b27c8e37b25fa2ee5035f0d332f59cd21ae3996f",
+      "localImports": []
+    },
+    {
+      "path": "js/native_sample.js",
+      "sourcePath": "docs/js/native_sample.js",
+      "bytes": 3645,
+      "sha256": "c281830126e7197cdec59cfdd8c7c1cd51ce26d53afe1887399e1aa81e5b07e0",
+      "localImports": []
+    },
+    {
+      "path": "js/native_sample_processor.js",
+      "sourcePath": "docs/js/native_sample_processor.js",
+      "bytes": 4443,
+      "sha256": "a1ee1cfa04b11bf4c66d8012e4a22d8a526a7a006333e6fe4e4540af3f1c8f27",
+      "localImports": []
+    },
+    {
+      "path": "js/pitch.js",
+      "sourcePath": "docs/js/pitch.js",
+      "bytes": 1888,
+      "sha256": "fd20f1f31c6c02fcf48213ed51209185a7addc8c526c867e7214563d6825cf42",
+      "localImports": []
+    },
+    {
+      "path": "js/playground_async_tasks.js",
+      "sourcePath": "docs/js/playground_async_tasks.js",
+      "bytes": 2223,
+      "sha256": "17fa8f4c308b5cd758c5230f274da3a1b4a984f3752479ebfd0e184b9bda08fd",
+      "localImports": []
+    },
+    {
+      "path": "js/playground_clock.js",
+      "sourcePath": "docs/js/playground_clock.js",
+      "bytes": 19367,
+      "sha256": "e16aeee557adf6b1752bd48907e0671a979b2dd0c46a4afaa20befa9db7e885d",
+      "localImports": []
+    },
+    {
+      "path": "js/playground_code_runtime.js",
+      "sourcePath": "docs/js/playground_code_runtime.js",
+      "bytes": 22127,
+      "sha256": "81a61998fc054b23db8e61e1198e59089ee9b43a282fec3395b29276ca6a5480",
+      "localImports": [
+        "./megasynth-fm-presets.js",
+        "./native_fx.js",
+        "./playground_async_tasks.js",
+        "./playground_clock.js",
+        "./playground_execution.js",
+        "./playground_live.js",
+        "./playground_log.js",
+        "./playground_music.js",
+        "./ps1_vab.js",
+        "./soundchip_pitch.js"
+      ]
+    },
+    {
+      "path": "js/playground_duration.js",
+      "sourcePath": "docs/js/playground_duration.js",
+      "bytes": 2009,
+      "sha256": "b6f1664b84569fd627d4d4e82a6c0b500edf142a3d9ced13f33ab5dc5606bfb1",
+      "localImports": []
+    },
+    {
+      "path": "js/playground_execution.js",
+      "sourcePath": "docs/js/playground_execution.js",
+      "bytes": 8875,
+      "sha256": "a4178b59713536fd21af4edd367b4afe2e9efbe2fee42862f61c59cc9d80b82e",
+      "localImports": []
+    },
+    {
+      "path": "js/playground_live.js",
+      "sourcePath": "docs/js/playground_live.js",
+      "bytes": 14734,
+      "sha256": "e2cb7e5982d4e607ca72ac7d3af9e5613ba5410611dc591f1ae52e941e663f4e",
+      "localImports": [
+        "./playground_log.js"
+      ]
+    },
+    {
+      "path": "js/playground_log.js",
+      "sourcePath": "docs/js/playground_log.js",
+      "bytes": 842,
+      "sha256": "a2a19ce457264c639b1afcb53d9758491a69dec7bee26c0a503c8a07d2a98ff6",
+      "localImports": []
+    },
+    {
+      "path": "js/playground_music.js",
+      "sourcePath": "docs/js/playground_music.js",
+      "bytes": 11300,
+      "sha256": "26fb0f1839616deb531b7f2cfa6ad0b7049e9d53c9c045b7231024e69209b7d6",
+      "localImports": [
+        "./pitch.js",
+        "./playground_duration.js?v=shared-beat-clock-1"
+      ]
+    },
+    {
+      "path": "js/playground_performance_queue.js",
+      "sourcePath": "docs/js/playground_performance_queue.js",
+      "bytes": 9950,
+      "sha256": "b3bfb3e11be32fdd6c861519341f39389c484d1752627e8aeb9c6fad87bf14b5",
+      "localImports": []
+    },
+    {
+      "path": "js/playground_spc.js",
+      "sourcePath": "docs/js/playground_spc.js",
+      "bytes": 10828,
+      "sha256": "dfdb2419da22ccaf71ff1e99c01efc5736cba409aa969e42e25883d336b29168",
+      "localImports": [
+        "./spc_events.js",
+        "./spc_voice_edit.js"
+      ]
+    },
+    {
+      "path": "js/playground_spc_audio.js",
+      "sourcePath": "docs/js/playground_spc_audio.js",
+      "bytes": 3497,
+      "sha256": "7f526e330836b377306adfb8cbc2f167ee08c1a5a123f374fb39148ada7ddb0c",
+      "localImports": []
+    },
+    {
+      "path": "js/ps1_parameters.js",
+      "sourcePath": "docs/js/ps1_parameters.js",
+      "bytes": 6237,
+      "sha256": "c5e4d60ffb4605bac11b275a9089895c114732fc51f1a9f04c88e5133dd3ced1",
+      "localImports": []
+    },
+    {
+      "path": "js/ps1_spu.js",
+      "sourcePath": "docs/js/ps1_spu.js",
+      "bytes": 10862,
+      "sha256": "d7fca7f2e4e9b7292cb5157d6e9ea1df67dd98b6facae478063f44864ae67769",
+      "localImports": []
+    },
+    {
+      "path": "js/ps1_vab.js",
+      "sourcePath": "docs/js/ps1_vab.js",
+      "bytes": 14976,
+      "sha256": "1f5b5f0a1f4fce7935b27a805aeccce24c1623e6f0ce5951c27639b3b5639a87",
+      "localImports": [
+        "./ps1synth.js"
+      ]
+    },
+    {
+      "path": "js/ps1synth.js",
+      "sourcePath": "docs/js/ps1synth.js",
+      "bytes": 21748,
+      "sha256": "efe17157a7d127cf8835a6c0c5de1a17135ef9e11a417b111b61858050fc5193",
+      "localImports": [
+        "./ps1_parameters.js?v=ps1-voice-editor-1",
+        "./ps1_spu.js?v=ps1-deferred-release-1",
+        "./soundchip_pitch.js"
+      ]
+    },
     {
       "path": "js/snes_brr.js",
       "sourcePath": "docs/js/snes_brr.js",
@@ -87,10 +346,30 @@
       "localImports": []
     },
     {
+      "path": "js/spc-worklet.js",
+      "sourcePath": "docs/js/spc-worklet.js",
+      "bytes": 14719,
+      "sha256": "b4583dd9b95401e77c93a7c342530a4f754cb6b74e578f269b59978e1ecdb025",
+      "localImports": [
+        "../generated/spc_wasm.js?v=spc-voice-edit-1",
+        "./spc.js?v=spc-voice-edit-1",
+        "./spc_resampler.js"
+      ]
+    },
+    {
       "path": "js/spc.js",
       "sourcePath": "docs/js/spc.js",
-      "bytes": 16728,
-      "sha256": "ab76ca3db5ec710e52278c1945cd0e052fb3c537fffed7c2e5741d157571739f",
+      "bytes": 17252,
+      "sha256": "619ac66b23f710eb6f42f01ae97f1feb23560d856a9eead24cde812e87bad904",
+      "localImports": [
+        "./spc_voice_edit.js"
+      ]
+    },
+    {
+      "path": "js/spc_events.js",
+      "sourcePath": "docs/js/spc_events.js",
+      "bytes": 11461,
+      "sha256": "7142e0fad5e39e6d04c986c40fc00ef07e657e3d5dda250b52a1161de955e58e",
       "localImports": []
     },
     {
@@ -108,6 +387,49 @@
       "localImports": []
     },
     {
+      "path": "js/spc_voice_edit.js",
+      "sourcePath": "docs/js/spc_voice_edit.js",
+      "bytes": 2920,
+      "sha256": "9fdcbec795e6134ddfddb5c22b7b3ceab8efd1287c50955428d9c48e90085fc9",
+      "localImports": []
+    },
+    {
+      "path": "js/tetorica_virtual_files/filesystem.js",
+      "sourcePath": "docs/js/tetorica_virtual_files/filesystem.js",
+      "bytes": 20206,
+      "sha256": "25f821472b25bc58cf4b840a44111b2639013861ef14191de8bd684e973c9b41",
+      "localImports": [
+        "./path.js",
+        "./reader.js",
+        "./sync.js"
+      ]
+    },
+    {
+      "path": "js/tetorica_virtual_files/path.js",
+      "sourcePath": "docs/js/tetorica_virtual_files/path.js",
+      "bytes": 1112,
+      "sha256": "79be21a2ba017b48882cfd69f01edd19a3e6858190405cc0d4588dcfd8a218a4",
+      "localImports": []
+    },
+    {
+      "path": "js/tetorica_virtual_files/reader.js",
+      "sourcePath": "docs/js/tetorica_virtual_files/reader.js",
+      "bytes": 1404,
+      "sha256": "90b21ba56ced53f65508513bc5741bea9b62af0b580fe218723628800ad76c6f",
+      "localImports": [
+        "./path.js"
+      ]
+    },
+    {
+      "path": "js/tetorica_virtual_files/sync.js",
+      "sourcePath": "docs/js/tetorica_virtual_files/sync.js",
+      "bytes": 5701,
+      "sha256": "7c2cb490bbf0ce036a79e1d513efcf41d1476e2ec778fe1867069a7a926432d4",
+      "localImports": [
+        "./path.js"
+      ]
+    },
+    {
       "path": "js/wav.js",
       "sourcePath": "docs/js/wav.js",
       "bytes": 2582,
@@ -115,10 +437,94 @@
       "localImports": []
     },
     {
+      "path": "playground/playground_cassette.js",
+      "sourcePath": "docs/playground/playground_cassette.js",
+      "bytes": 14751,
+      "sha256": "685f14c303706e60f27809b2c53d84003e356d1ce774df523475799b245a3346",
+      "localImports": [
+        "./vendor/fflate.js"
+      ]
+    },
+    {
+      "path": "playground/playground_declarations.js",
+      "sourcePath": "docs/playground/playground_declarations.js",
+      "bytes": 2945,
+      "sha256": "7701ce32ef1139309f457f6d98964a11ba6153ed0eb58f9a36af4066689d3255",
+      "localImports": []
+    },
+    {
+      "path": "playground/playground_example_order.js",
+      "sourcePath": "docs/playground/playground_example_order.js",
+      "bytes": 315,
+      "sha256": "0764d46c06697fef7f111b69b9f6d3f4a0ad9c8c96218929cffdab79af4b1209",
+      "localImports": []
+    },
+    {
+      "path": "playground/playground_file_tree.js",
+      "sourcePath": "docs/playground/playground_file_tree.js",
+      "bytes": 4862,
+      "sha256": "7bbc4c40fb6d30e65d36d9408c2c0337dbcee6ae3770fa85b379ba27ae9cee30",
+      "localImports": [
+        "./playground_example_order.js?v=scsp-fm-1"
+      ]
+    },
+    {
+      "path": "playground/playground_monaco.js",
+      "sourcePath": "docs/playground/playground_monaco.js",
+      "bytes": 23172,
+      "sha256": "fada1db8d8ed7278ad44afe7578c74f24bd9f99236b9c4e17220c5f27d35d03b",
+      "localImports": [
+        "./playground_declarations.js?v=ps1-vab-api-1",
+        "./playground_monaco_completion.js?v=ps1-vab-api-1",
+        "./playground_monaco_definitions.js?v=sdsp-code-review-1"
+      ]
+    },
+    {
+      "path": "playground/playground_monaco_completion.js",
+      "sourcePath": "docs/playground/playground_monaco_completion.js",
+      "bytes": 45033,
+      "sha256": "ca6c6bf3acb8d1a5fc4246fc0e598b5603d221610353f8c063e0ed43249f5f49",
+      "localImports": [
+        "../js/megasynth-fm-presets.js"
+      ]
+    },
+    {
+      "path": "playground/playground_monaco_definitions.js",
+      "sourcePath": "docs/playground/playground_monaco_definitions.js",
+      "bytes": 21162,
+      "sha256": "49089920730a19d072928e47a55d290d0934831c43e3322abadeb4bb43e17566",
+      "localImports": []
+    },
+    {
+      "path": "playground/playground_virtual_files.js",
+      "sourcePath": "docs/playground/playground_virtual_files.js",
+      "bytes": 5205,
+      "sha256": "d8d0a6f9c1046181936ef38bbd555d96d6e814eca567f51306f05e998554ae41",
+      "localImports": [
+        "../js/tetorica_virtual_files/filesystem.js",
+        "../js/tetorica_virtual_files/path.js",
+        "../js/tetorica_virtual_files/reader.js"
+      ]
+    },
+    {
+      "path": "playground/vendor/fflate.js",
+      "sourcePath": "docs/playground/vendor/fflate.js",
+      "bytes": 90922,
+      "sha256": "b7ca4450b19559a1d50eb381adcee94b82449674be4cd17789d9beba7e6122a1",
+      "localImports": []
+    },
+    {
+      "path": "synth-snes/adsr_graph.js",
+      "sourcePath": "docs/synth-snes/adsr_graph.js",
+      "bytes": 6821,
+      "sha256": "b4ea3c25e535ed26d16f52138cc893a090188afc0d2ab27219a4c40b3a5fe5a8",
+      "localImports": []
+    },
+    {
       "path": "synth-snes/audio.js",
       "sourcePath": "docs/synth-snes/audio.js",
-      "bytes": 9195,
-      "sha256": "81114735096106dec435d91046bb20e1d07dd2df5cfd692cc665ee08523e8c14",
+      "bytes": 10008,
+      "sha256": "595300c91773ca54a6ef8a0197734376581d69a4082ec33bc834c4f20e596aea",
       "localImports": []
     },
     {
@@ -133,33 +539,148 @@
       ]
     },
     {
-      "path": "synth-snes/editor.js",
-      "sourcePath": "docs/synth-snes/editor.js",
-      "bytes": 49627,
-      "sha256": "a42449a7dab02ea70456421fe0a5d606e1cc7269d8f3985905bd4e103b6fdc7b",
+      "path": "synth-snes/channel_view.js",
+      "sourcePath": "docs/synth-snes/channel_view.js",
+      "bytes": 5379,
+      "sha256": "0b5a3c6b8e469feb432e89f8f3469fb92fbc6a21b84ed9f879fa180525e38816",
       "localImports": [
         "../js/snes_brr.js",
-        "./preset.js",
+        "./spc_import.js?v=spc-sample-inspection-1"
+      ]
+    },
+    {
+      "path": "synth-snes/code_audio.js",
+      "sourcePath": "docs/synth-snes/code_audio.js",
+      "bytes": 4994,
+      "sha256": "84cb7e670c8591447820435657ca2908d9fbb8ca146752953ad13376fde7338f",
+      "localImports": [
+        "../js/native_fx_rack.js?v=prepared-fx-rerun-2",
+        "../synth/synth_code_output.js"
+      ]
+    },
+    {
+      "path": "synth-snes/code_client.js",
+      "sourcePath": "docs/synth-snes/code_client.js",
+      "bytes": 2448,
+      "sha256": "f725aae190260d2b74737e9a5f55917d45fb0d150c067e71a55f15e4c5ca115d",
+      "localImports": [
+        "../js/soundchip_pitch.js"
+      ]
+    },
+    {
+      "path": "synth-snes/code_declarations.js",
+      "sourcePath": "docs/synth-snes/code_declarations.js",
+      "bytes": 1960,
+      "sha256": "54daf60bcd037a7edc6dce612a0032d22cc4a711f14cdb23dea3e8fca1372089",
+      "localImports": [
+        "../synth/synth_code_declarations.js?v=shared-code-hosts-1"
+      ]
+    },
+    {
+      "path": "synth-snes/code_files.js",
+      "sourcePath": "docs/synth-snes/code_files.js",
+      "bytes": 30482,
+      "sha256": "5d4c4654f1188c4c74bf3252e5110e355c5a91d11732799e42ea2ff96268d325",
+      "localImports": [
+        "../js/tetorica_virtual_files/filesystem.js",
+        "../js/tetorica_virtual_files/path.js",
+        "../playground/playground_file_tree.js",
+        "../synth-spu/file_context_menu.js?v=spu-files-menu-1",
+        "./code_project.js?v=draft-reconnect-1"
+      ]
+    },
+    {
+      "path": "synth-snes/code_host.js",
+      "sourcePath": "docs/synth-snes/code_host.js",
+      "bytes": 4308,
+      "sha256": "2cc8ad4053825e04ab32a7f1491db67817c22380f696cc360bb3477675f5a989",
+      "localImports": [
+        "../js/playground_code_runtime.js",
+        "../synth/synth_code_controls.js?v=sdsp-code-review-1",
+        "./code_audio.js",
+        "./code_declarations.js",
+        "./code_files.js?v=spc-menu-priority-1",
+        "./code_project.js?v=draft-reconnect-1"
+      ]
+    },
+    {
+      "path": "synth-snes/code_project.js",
+      "sourcePath": "docs/synth-snes/code_project.js",
+      "bytes": 9449,
+      "sha256": "3ea727d7eb1638f90efbf5596402378a73c169b0ad5b591d4919686e1f0d8a73",
+      "localImports": [
+        "../js/tetorica_virtual_files/filesystem.js",
+        "../js/tetorica_virtual_files/path.js",
+        "../playground/playground_cassette.js",
+        "../synth/synth_code_project.js?code-files-scope=2",
+        "../synth/synth_project_store.js?v=draft-reconnect-1",
+        "./preset.js"
+      ]
+    },
+    {
+      "path": "synth-snes/editor.js",
+      "sourcePath": "docs/synth-snes/editor.js",
+      "bytes": 57240,
+      "sha256": "be14b2af63e87aefd4d1106f473e1a0187adc4ee089e4401b8f230230bbfe01a",
+      "localImports": [
+        "../js/snes_brr.js",
+        "./adsr_graph.js",
+        "./preset.js?v=sdsp-live-wave-1",
         "./sample.js"
       ]
     },
     {
       "path": "synth-snes/instrument.js",
       "sourcePath": "docs/synth-snes/instrument.js",
-      "bytes": 10753,
-      "sha256": "f9a78571eed381c7bc84a4c51e8ccf62c3fd7d6ea5a5a5cccbb860d0d6686d07",
+      "bytes": 12401,
+      "sha256": "07d1f6df9e75cd6c684bc393984a1a5d88416a614ca05ac5d52b42444d25d579",
       "localImports": [
         "../js/snes_brr_encoder.js",
         "../js/snessynth.js",
-        "./preset.js",
+        "./preset.js?v=sdsp-live-wave-1",
         "./sample.js"
       ]
     },
     {
+      "path": "synth-snes/looper-processor.js",
+      "sourcePath": "docs/synth-snes/looper-processor.js",
+      "bytes": 2121,
+      "sha256": "39f97aaa8691aca903302b741e18962b9c359f84c83b545e79a54e465d4f7d7b",
+      "localImports": []
+    },
+    {
+      "path": "synth-snes/looper.js",
+      "sourcePath": "docs/synth-snes/looper.js",
+      "bytes": 7483,
+      "sha256": "ea03c7316ac7f78135e18946f53e715bed25c346948ed1e1e7cc7f882a471a54",
+      "localImports": []
+    },
+    {
+      "path": "synth-snes/looper_controls.js",
+      "sourcePath": "docs/synth-snes/looper_controls.js",
+      "bytes": 2129,
+      "sha256": "3b06c6f9866eac5e043ddd5d80abe70ed0e3f779745c8c5a1e3fa24e8c57b171",
+      "localImports": []
+    },
+    {
+      "path": "synth-snes/menu.js",
+      "sourcePath": "docs/synth-snes/menu.js",
+      "bytes": 2171,
+      "sha256": "3092b7a6c4ca678e66065ec71366f896964456a44406d318967cd8811e14f5f6",
+      "localImports": []
+    },
+    {
+      "path": "synth-snes/mixer.js",
+      "sourcePath": "docs/synth-snes/mixer.js",
+      "bytes": 2506,
+      "sha256": "fa33e75c042c95eb30e49e78a1c33d6b8710e687a5fc8c6b179b7b104989da28",
+      "localImports": []
+    },
+    {
       "path": "synth-snes/preset.js",
       "sourcePath": "docs/synth-snes/preset.js",
-      "bytes": 13934,
-      "sha256": "a117c1b7d993ce3acb16cfc84acf9c2f4ffc865dfcdef8ccaa71183a449a625c",
+      "bytes": 14313,
+      "sha256": "38b2683c64b692f1e24627b776067c05974bb8dbd1cfa3433e4c823569113807",
       "localImports": [
         "../js/snessynth.js",
         "./sample.js"
@@ -168,13 +689,13 @@
     {
       "path": "synth-snes/processor.js",
       "sourcePath": "docs/synth-snes/processor.js",
-      "bytes": 4096,
-      "sha256": "d7195b279c31a4ab56cc5631440333945e56641d4c2cca1cdc2e1d4f4e3b13f8",
+      "bytes": 4128,
+      "sha256": "496805da0c689dfe3941c6c7112a76ce3a5c0619e5c66415c7ad706b0c6bff1e",
       "localImports": [
         "../generated/spc_wasm.js",
         "../js/spc.js",
         "../js/spc_resampler.js",
-        "./instrument.js"
+        "./instrument.js?v=channel-mixer-1"
       ]
     },
     {
@@ -185,29 +706,65 @@
       "localImports": []
     },
     {
+      "path": "synth-snes/song_controls.js",
+      "sourcePath": "docs/synth-snes/song_controls.js",
+      "bytes": 2663,
+      "sha256": "6679ae95489cec4545d1675568e5e5f1414a82676d9b88f875b4b86886a29130",
+      "localImports": [
+        "./song_seek_controls.js"
+      ]
+    },
+    {
+      "path": "synth-snes/song_player.js",
+      "sourcePath": "docs/synth-snes/song_player.js",
+      "bytes": 10055,
+      "sha256": "4793d59063b53309916d3b4fa65141ebbe9d684ab84ef4620afbd440b398d7f7",
+      "localImports": [
+        "../js/playground_spc.js?v=spc-voice-edit-1",
+        "../js/playground_spc_audio.js?v=spc-voice-edit-1",
+        "../js/snes_brr.js",
+        "../js/spc_file.js",
+        "../js/spc_voice_edit.js"
+      ]
+    },
+    {
+      "path": "synth-snes/song_seek_controls.js",
+      "sourcePath": "docs/synth-snes/song_seek_controls.js",
+      "bytes": 4027,
+      "sha256": "0775c3df91b812df325171aaf13e358758b0ae8512b69b5fb391c0dbbda622f7",
+      "localImports": []
+    },
+    {
       "path": "synth-snes/spc_browser.js",
       "sourcePath": "docs/synth-snes/spc_browser.js",
-      "bytes": 17047,
-      "sha256": "7ff4719a6150c2ebeba1041777be45c92fa07eba27cbd5ef0536d06a308c4e47",
+      "bytes": 17533,
+      "sha256": "288d9b4cd1188846278c4855ea7c8c3d620ca80ccc3667453359883b17dde979",
       "localImports": []
     },
     {
       "path": "synth-snes/spc_import.js",
       "sourcePath": "docs/synth-snes/spc_import.js",
-      "bytes": 13279,
-      "sha256": "bc24e4796ec9135cadba20b8909df68a7310d968242bdf4bf315fe7e99f26210",
+      "bytes": 14153,
+      "sha256": "b07cb9cc25767cdf3f50c3f0783d969cf020ba7d65a5a16a1c4fc7caafbd7607",
       "localImports": [
         "../js/snes_brr.js",
         "../js/spc_file.js",
-        "./preset.js",
+        "./preset.js?v=sdsp-live-wave-1",
         "./sample.js"
       ]
     },
     {
+      "path": "synth-snes/spc_live.js",
+      "sourcePath": "docs/synth-snes/spc_live.js",
+      "bytes": 4633,
+      "sha256": "9cc0bf7d950020db1318c3443cec2f66042cf1562f5c30debcbf0aabe5da02f8",
+      "localImports": []
+    },
+    {
       "path": "synth-snes/synth.css",
       "sourcePath": "docs/synth-snes/synth.css",
-      "bytes": 10331,
-      "sha256": "8ed321a222648e22291b54ce17b7bfa868aa6f4afa3d9a7ffe3c0b794862cf32",
+      "bytes": 26263,
+      "sha256": "b3646d41c1d6ab63c448cb570af433b39dfa6a99762e4cd61bb4c78c3d49e330",
       "localImports": [
         "../synth-spu/synth.css"
       ]
@@ -215,18 +772,35 @@
     {
       "path": "synth-snes/synth.js",
       "sourcePath": "docs/synth-snes/synth.js",
-      "bytes": 22686,
-      "sha256": "a32ab58e08f64f563074d26fd1598eec78af8f21d78110871095ee4682fad35b",
+      "bytes": 33622,
+      "sha256": "009661c0c32b7f7d0b33f20626aabf687f08af4e13900d3e23d5be808ddf12e0",
       "localImports": [
         "../synth-spu/spu_synth_visualizer.js",
         "../synth/synth_keyboard.js",
-        "./audio.js",
+        "./audio.js?v=spc-channel-edit-1",
         "./audio_import.js",
-        "./editor.js",
-        "./preset.js",
-        "./spc_browser.js",
-        "./spc_import.js"
+        "./channel_view.js?v=shared-channel-editor-1",
+        "./code_client.js",
+        "./code_host.js?v=spc-menu-priority-1",
+        "./editor.js?v=adsr-graph-1",
+        "./looper.js",
+        "./looper_controls.js",
+        "./menu.js",
+        "./mixer.js",
+        "./preset.js?v=sdsp-live-wave-1",
+        "./song_controls.js?v=spc-seek-controls-1",
+        "./song_player.js?v=shared-channel-editor-1",
+        "./spc_browser.js?v=spc-channel-edit-1",
+        "./spc_import.js?v=spc-sample-inspection-1",
+        "./spc_live.js?v=sound-library-1"
       ]
+    },
+    {
+      "path": "synth-spu/file_context_menu.js",
+      "sourcePath": "docs/synth-spu/file_context_menu.js",
+      "bytes": 6313,
+      "sha256": "246c5bc3108826c68c85c3539c45bafa939e1ef99d69dd84cf81b416e40786c3",
+      "localImports": []
     },
     {
       "path": "synth-spu/spu_synth_visualizer.js",
@@ -238,8 +812,51 @@
     {
       "path": "synth-spu/synth.css",
       "sourcePath": "docs/synth-spu/synth.css",
-      "bytes": 23333,
-      "sha256": "8e45689b279e52db21c5ed6b29e26bd5d10896abcd8c834a1d77bc6950dcd0ad",
+      "bytes": 36580,
+      "sha256": "d3c1a57beb040cb1a4cecea807eeb9c15aa527a9d036c4c04f8d11ca67b56869",
+      "localImports": []
+    },
+    {
+      "path": "synth/synth_code_controls.js",
+      "sourcePath": "docs/synth/synth_code_controls.js",
+      "bytes": 21848,
+      "sha256": "a95e856263570b9e77ba3a97a8eb9ef58564c55472da17de4f67a5c3ffc95216",
+      "localImports": [
+        "../playground/playground_monaco.js?v=synth-code-types-1&huc-source=2&sdsp-source=1",
+        "./synth_code_declarations.js?v=shared-pcm-notes-1"
+      ]
+    },
+    {
+      "path": "synth/synth_code_declarations.js",
+      "sourcePath": "docs/synth/synth_code_declarations.js",
+      "bytes": 7464,
+      "sha256": "5f1a800a38b76e63fbb055c0eea3a4277b75e35cc9270ce1f0bdd1dd682584e6",
+      "localImports": []
+    },
+    {
+      "path": "synth/synth_code_output.js",
+      "sourcePath": "docs/synth/synth_code_output.js",
+      "bytes": 4973,
+      "sha256": "dca6ef03aca997f55fda55684fd6e0aa8dd8beb246c68a59ef8ac85efab4e112",
+      "localImports": []
+    },
+    {
+      "path": "synth/synth_code_project.js",
+      "sourcePath": "docs/synth/synth_code_project.js",
+      "bytes": 1623,
+      "sha256": "7fbc1f8b5df80b2fbbfb4d19fa1f36906563f8762317466102ba19d228d17026",
+      "localImports": [
+        "../js/tetorica_virtual_files/filesystem.js",
+        "../js/tetorica_virtual_files/path.js",
+        "../js/tetorica_virtual_files/reader.js",
+        "../playground/playground_virtual_files.js"
+      ]
+    },
+    {
+      "path": "synth/synth_draft_store.js",
+      "sourcePath": "docs/synth/synth_draft_store.js",
+      "bytes": 3656,
+      "sha256": "e5425ddf930f0860531aa8566c6ed122577598447876c17b1ce10384f96335b6",
       "localImports": []
     },
     {
@@ -249,6 +866,15 @@
       "sha256": "b7dc1daea64aa6e061bfdb2295010ee24eddaba51ab7ab6cf87c0f751be7c795",
       "localImports": [
         "../js/soundchip_pitch.js"
+      ]
+    },
+    {
+      "path": "synth/synth_project_store.js",
+      "sourcePath": "docs/synth/synth_project_store.js",
+      "bytes": 1835,
+      "sha256": "6ec7a4b2f234285636a406170359810be96aba58de18e3f7450ac19f3eba1636",
+      "localImports": [
+        "./synth_draft_store.js?v=draft-reconnect-1"
       ]
     }
   ],
@@ -262,6 +888,136 @@
       "path": "docs/issues/sdsp_synth_icon_prompt.txt",
       "bytes": 5032,
       "sha256": "9c93c56c675ce635315352d1314432c7a117b4fd3d9cd901fb33274f2db1b69c"
+    },
+    {
+      "path": "docs/js/custom_fx.js",
+      "bytes": 5764,
+      "sha256": "f719e32f063bdbdb4d7cb9bb7aff1087dde2152ade7449b2819f2d3a6cc4424e"
+    },
+    {
+      "path": "docs/js/megasynth-fm-presets.js",
+      "bytes": 6954,
+      "sha256": "daf3c42d3d6b1777d5729073eed9edf4d96a78d55e22fedfad394137d41bb06c"
+    },
+    {
+      "path": "docs/js/native-fx-worklet.js",
+      "bytes": 8783,
+      "sha256": "d490b7197cdc139314479ad5048725d62e23d12664b126b12dfebb209ef3c4ac"
+    },
+    {
+      "path": "docs/js/native_fx.js",
+      "bytes": 7922,
+      "sha256": "42cf0829acbc3cf779a5fc2005a6c1ac1ecfee92075f468da968c59b0fe4e27f"
+    },
+    {
+      "path": "docs/js/native_fx_engine.js",
+      "bytes": 7061,
+      "sha256": "8f9ba9ff857a34dc46b2646d77838e79fd48cdf4d2d4f3caf7176091a575967f"
+    },
+    {
+      "path": "docs/js/native_fx_graph.js",
+      "bytes": 3612,
+      "sha256": "fc9345f3a1c499b6fb5d2a893ed2c31c92394397e1a0ccaa343fc7b722e64ccf"
+    },
+    {
+      "path": "docs/js/native_fx_rack.js",
+      "bytes": 2128,
+      "sha256": "92e57a539409d7139e4820d275fedff5e9862765f34a5cb3b3c07c67608429a5"
+    },
+    {
+      "path": "docs/js/native_noise.js",
+      "bytes": 4209,
+      "sha256": "c0ce2bdb16f1aed62e6b83f1b27c8e37b25fa2ee5035f0d332f59cd21ae3996f"
+    },
+    {
+      "path": "docs/js/native_sample.js",
+      "bytes": 3645,
+      "sha256": "c281830126e7197cdec59cfdd8c7c1cd51ce26d53afe1887399e1aa81e5b07e0"
+    },
+    {
+      "path": "docs/js/native_sample_processor.js",
+      "bytes": 4443,
+      "sha256": "a1ee1cfa04b11bf4c66d8012e4a22d8a526a7a006333e6fe4e4540af3f1c8f27"
+    },
+    {
+      "path": "docs/js/pitch.js",
+      "bytes": 1888,
+      "sha256": "fd20f1f31c6c02fcf48213ed51209185a7addc8c526c867e7214563d6825cf42"
+    },
+    {
+      "path": "docs/js/playground_async_tasks.js",
+      "bytes": 2223,
+      "sha256": "17fa8f4c308b5cd758c5230f274da3a1b4a984f3752479ebfd0e184b9bda08fd"
+    },
+    {
+      "path": "docs/js/playground_clock.js",
+      "bytes": 19367,
+      "sha256": "e16aeee557adf6b1752bd48907e0671a979b2dd0c46a4afaa20befa9db7e885d"
+    },
+    {
+      "path": "docs/js/playground_code_runtime.js",
+      "bytes": 22127,
+      "sha256": "81a61998fc054b23db8e61e1198e59089ee9b43a282fec3395b29276ca6a5480"
+    },
+    {
+      "path": "docs/js/playground_duration.js",
+      "bytes": 2009,
+      "sha256": "b6f1664b84569fd627d4d4e82a6c0b500edf142a3d9ced13f33ab5dc5606bfb1"
+    },
+    {
+      "path": "docs/js/playground_execution.js",
+      "bytes": 8875,
+      "sha256": "a4178b59713536fd21af4edd367b4afe2e9efbe2fee42862f61c59cc9d80b82e"
+    },
+    {
+      "path": "docs/js/playground_live.js",
+      "bytes": 14734,
+      "sha256": "e2cb7e5982d4e607ca72ac7d3af9e5613ba5410611dc591f1ae52e941e663f4e"
+    },
+    {
+      "path": "docs/js/playground_log.js",
+      "bytes": 842,
+      "sha256": "a2a19ce457264c639b1afcb53d9758491a69dec7bee26c0a503c8a07d2a98ff6"
+    },
+    {
+      "path": "docs/js/playground_music.js",
+      "bytes": 11300,
+      "sha256": "26fb0f1839616deb531b7f2cfa6ad0b7049e9d53c9c045b7231024e69209b7d6"
+    },
+    {
+      "path": "docs/js/playground_performance_queue.js",
+      "bytes": 9950,
+      "sha256": "b3bfb3e11be32fdd6c861519341f39389c484d1752627e8aeb9c6fad87bf14b5"
+    },
+    {
+      "path": "docs/js/playground_spc.js",
+      "bytes": 10828,
+      "sha256": "dfdb2419da22ccaf71ff1e99c01efc5736cba409aa969e42e25883d336b29168"
+    },
+    {
+      "path": "docs/js/playground_spc_audio.js",
+      "bytes": 3497,
+      "sha256": "7f526e330836b377306adfb8cbc2f167ee08c1a5a123f374fb39148ada7ddb0c"
+    },
+    {
+      "path": "docs/js/ps1_parameters.js",
+      "bytes": 6237,
+      "sha256": "c5e4d60ffb4605bac11b275a9089895c114732fc51f1a9f04c88e5133dd3ced1"
+    },
+    {
+      "path": "docs/js/ps1_spu.js",
+      "bytes": 10862,
+      "sha256": "d7fca7f2e4e9b7292cb5157d6e9ea1df67dd98b6facae478063f44864ae67769"
+    },
+    {
+      "path": "docs/js/ps1_vab.js",
+      "bytes": 14976,
+      "sha256": "1f5b5f0a1f4fce7935b27a805aeccce24c1623e6f0ce5951c27639b3b5639a87"
+    },
+    {
+      "path": "docs/js/ps1synth.js",
+      "bytes": 21748,
+      "sha256": "efe17157a7d127cf8835a6c0c5de1a17135ef9e11a417b111b61858050fc5193"
     },
     {
       "path": "docs/js/snes_brr.js",
@@ -284,9 +1040,19 @@
       "sha256": "c8bcce0f27c2500d6090b5e56660e697b8b03d7ec011cee4deba05664038bae9"
     },
     {
+      "path": "docs/js/spc-worklet.js",
+      "bytes": 14719,
+      "sha256": "b4583dd9b95401e77c93a7c342530a4f754cb6b74e578f269b59978e1ecdb025"
+    },
+    {
       "path": "docs/js/spc.js",
-      "bytes": 16728,
-      "sha256": "ab76ca3db5ec710e52278c1945cd0e052fb3c537fffed7c2e5741d157571739f"
+      "bytes": 17252,
+      "sha256": "619ac66b23f710eb6f42f01ae97f1feb23560d856a9eead24cde812e87bad904"
+    },
+    {
+      "path": "docs/js/spc_events.js",
+      "bytes": 11461,
+      "sha256": "7142e0fad5e39e6d04c986c40fc00ef07e657e3d5dda250b52a1161de955e58e"
     },
     {
       "path": "docs/js/spc_file.js",
@@ -299,19 +1065,109 @@
       "sha256": "ad389d1ed6b695d4ab59ad8875adbb2de4dbe4abf5ee478f65d5711535a73b84"
     },
     {
+      "path": "docs/js/spc_voice_edit.js",
+      "bytes": 2920,
+      "sha256": "9fdcbec795e6134ddfddb5c22b7b3ceab8efd1287c50955428d9c48e90085fc9"
+    },
+    {
+      "path": "docs/js/tetorica_virtual_files/filesystem.js",
+      "bytes": 20206,
+      "sha256": "25f821472b25bc58cf4b840a44111b2639013861ef14191de8bd684e973c9b41"
+    },
+    {
+      "path": "docs/js/tetorica_virtual_files/path.js",
+      "bytes": 1112,
+      "sha256": "79be21a2ba017b48882cfd69f01edd19a3e6858190405cc0d4588dcfd8a218a4"
+    },
+    {
+      "path": "docs/js/tetorica_virtual_files/reader.js",
+      "bytes": 1404,
+      "sha256": "90b21ba56ced53f65508513bc5741bea9b62af0b580fe218723628800ad76c6f"
+    },
+    {
+      "path": "docs/js/tetorica_virtual_files/sync.js",
+      "bytes": 5701,
+      "sha256": "7c2cb490bbf0ce036a79e1d513efcf41d1476e2ec778fe1867069a7a926432d4"
+    },
+    {
       "path": "docs/js/wav.js",
       "bytes": 2582,
       "sha256": "986245e48eb0c28cc5b0e967c131f604177b839b8f34e17bd0aa3f5f1e385fd6"
     },
     {
+      "path": "docs/playground/playground_cassette.js",
+      "bytes": 14751,
+      "sha256": "685f14c303706e60f27809b2c53d84003e356d1ce774df523475799b245a3346"
+    },
+    {
+      "path": "docs/playground/playground_declarations.js",
+      "bytes": 2945,
+      "sha256": "7701ce32ef1139309f457f6d98964a11ba6153ed0eb58f9a36af4066689d3255"
+    },
+    {
+      "path": "docs/playground/playground_example_order.js",
+      "bytes": 315,
+      "sha256": "0764d46c06697fef7f111b69b9f6d3f4a0ad9c8c96218929cffdab79af4b1209"
+    },
+    {
+      "path": "docs/playground/playground_file_tree.js",
+      "bytes": 4862,
+      "sha256": "7bbc4c40fb6d30e65d36d9408c2c0337dbcee6ae3770fa85b379ba27ae9cee30"
+    },
+    {
+      "path": "docs/playground/playground_monaco.js",
+      "bytes": 23172,
+      "sha256": "fada1db8d8ed7278ad44afe7578c74f24bd9f99236b9c4e17220c5f27d35d03b"
+    },
+    {
+      "path": "docs/playground/playground_monaco_completion.js",
+      "bytes": 45033,
+      "sha256": "ca6c6bf3acb8d1a5fc4246fc0e598b5603d221610353f8c063e0ed43249f5f49"
+    },
+    {
+      "path": "docs/playground/playground_monaco_definitions.js",
+      "bytes": 21162,
+      "sha256": "49089920730a19d072928e47a55d290d0934831c43e3322abadeb4bb43e17566"
+    },
+    {
+      "path": "docs/playground/playground_virtual_files.js",
+      "bytes": 5205,
+      "sha256": "d8d0a6f9c1046181936ef38bbd555d96d6e814eca567f51306f05e998554ae41"
+    },
+    {
+      "path": "docs/playground/tetorica-playground-globals.d.ts",
+      "bytes": 143235,
+      "sha256": "cb5f91e6de2fe80670d580af69b883476ef64e774d41d12c94045c986ce98889"
+    },
+    {
+      "path": "docs/playground/tetorica-shell.d.ts",
+      "bytes": 2953,
+      "sha256": "a0d17aeb969faf8a2e8489a00e6f1a869622e08db7b1b019cced67774326391d"
+    },
+    {
+      "path": "docs/playground/vendor/fflate-LICENSE",
+      "bytes": 1069,
+      "sha256": "0a1df3a083d0c010560aa342e87959c8c1070e6fd54545741f083f22d0c8b551"
+    },
+    {
+      "path": "docs/playground/vendor/fflate.js",
+      "bytes": 90922,
+      "sha256": "b7ca4450b19559a1d50eb381adcee94b82449674be4cd17789d9beba7e6122a1"
+    },
+    {
       "path": "docs/synth-snes/README.md",
-      "bytes": 29358,
-      "sha256": "31fe7cc69a4493fd1e0e8f4ddc65457fdf242923d4c458ac2e318557f2ddce49"
+      "bytes": 45750,
+      "sha256": "2c5b51d5b2b5ff3dbdc22838645211722616ff67b5cb9c49b0331cc34dd101ed"
+    },
+    {
+      "path": "docs/synth-snes/adsr_graph.js",
+      "bytes": 6821,
+      "sha256": "b4ea3c25e535ed26d16f52138cc893a090188afc0d2ab27219a4c40b3a5fe5a8"
     },
     {
       "path": "docs/synth-snes/audio.js",
-      "bytes": 9195,
-      "sha256": "81114735096106dec435d91046bb20e1d07dd2df5cfd692cc665ee08523e8c14"
+      "bytes": 10008,
+      "sha256": "595300c91773ca54a6ef8a0197734376581d69a4082ec33bc834c4f20e596aea"
     },
     {
       "path": "docs/synth-snes/audio_import.js",
@@ -319,29 +1175,89 @@
       "sha256": "7961f36fb18e4c0d30aa47175f38205db2ff2446ab9b43a2f1a9c4d3ee95facb"
     },
     {
+      "path": "docs/synth-snes/channel_view.js",
+      "bytes": 5379,
+      "sha256": "0b5a3c6b8e469feb432e89f8f3469fb92fbc6a21b84ed9f879fa180525e38816"
+    },
+    {
+      "path": "docs/synth-snes/code_audio.js",
+      "bytes": 4994,
+      "sha256": "84cb7e670c8591447820435657ca2908d9fbb8ca146752953ad13376fde7338f"
+    },
+    {
+      "path": "docs/synth-snes/code_client.js",
+      "bytes": 2448,
+      "sha256": "f725aae190260d2b74737e9a5f55917d45fb0d150c067e71a55f15e4c5ca115d"
+    },
+    {
+      "path": "docs/synth-snes/code_declarations.js",
+      "bytes": 1960,
+      "sha256": "54daf60bcd037a7edc6dce612a0032d22cc4a711f14cdb23dea3e8fca1372089"
+    },
+    {
+      "path": "docs/synth-snes/code_files.js",
+      "bytes": 30482,
+      "sha256": "5d4c4654f1188c4c74bf3252e5110e355c5a91d11732799e42ea2ff96268d325"
+    },
+    {
+      "path": "docs/synth-snes/code_host.js",
+      "bytes": 4308,
+      "sha256": "2cc8ad4053825e04ab32a7f1491db67817c22380f696cc360bb3477675f5a989"
+    },
+    {
+      "path": "docs/synth-snes/code_project.js",
+      "bytes": 9449,
+      "sha256": "3ea727d7eb1638f90efbf5596402378a73c169b0ad5b591d4919686e1f0d8a73"
+    },
+    {
       "path": "docs/synth-snes/editor.js",
-      "bytes": 49627,
-      "sha256": "a42449a7dab02ea70456421fe0a5d606e1cc7269d8f3985905bd4e103b6fdc7b"
+      "bytes": 57240,
+      "sha256": "be14b2af63e87aefd4d1106f473e1a0187adc4ee089e4401b8f230230bbfe01a"
     },
     {
       "path": "docs/synth-snes/index.html",
-      "bytes": 7663,
-      "sha256": "f2d460087781e971996fce99a80972066934872f02ca055dd98cd5d2dede320d"
+      "bytes": 17356,
+      "sha256": "43b5bf01ecb7fb95cc4f2ca1d832884eddebd205f6ab4aa78bb39b1986510705"
     },
     {
       "path": "docs/synth-snes/instrument.js",
-      "bytes": 10753,
-      "sha256": "f9a78571eed381c7bc84a4c51e8ccf62c3fd7d6ea5a5a5cccbb860d0d6686d07"
+      "bytes": 12401,
+      "sha256": "07d1f6df9e75cd6c684bc393984a1a5d88416a614ca05ac5d52b42444d25d579"
+    },
+    {
+      "path": "docs/synth-snes/looper-processor.js",
+      "bytes": 2121,
+      "sha256": "39f97aaa8691aca903302b741e18962b9c359f84c83b545e79a54e465d4f7d7b"
+    },
+    {
+      "path": "docs/synth-snes/looper.js",
+      "bytes": 7483,
+      "sha256": "ea03c7316ac7f78135e18946f53e715bed25c346948ed1e1e7cc7f882a471a54"
+    },
+    {
+      "path": "docs/synth-snes/looper_controls.js",
+      "bytes": 2129,
+      "sha256": "3b06c6f9866eac5e043ddd5d80abe70ed0e3f779745c8c5a1e3fa24e8c57b171"
+    },
+    {
+      "path": "docs/synth-snes/menu.js",
+      "bytes": 2171,
+      "sha256": "3092b7a6c4ca678e66065ec71366f896964456a44406d318967cd8811e14f5f6"
+    },
+    {
+      "path": "docs/synth-snes/mixer.js",
+      "bytes": 2506,
+      "sha256": "fa33e75c042c95eb30e49e78a1c33d6b8710e687a5fc8c6b179b7b104989da28"
     },
     {
       "path": "docs/synth-snes/preset.js",
-      "bytes": 13934,
-      "sha256": "a117c1b7d993ce3acb16cfc84acf9c2f4ffc865dfcdef8ccaa71183a449a625c"
+      "bytes": 14313,
+      "sha256": "38b2683c64b692f1e24627b776067c05974bb8dbd1cfa3433e4c823569113807"
     },
     {
       "path": "docs/synth-snes/processor.js",
-      "bytes": 4096,
-      "sha256": "d7195b279c31a4ab56cc5631440333945e56641d4c2cca1cdc2e1d4f4e3b13f8"
+      "bytes": 4128,
+      "sha256": "496805da0c689dfe3941c6c7112a76ce3a5c0619e5c66415c7ad706b0c6bff1e"
     },
     {
       "path": "docs/synth-snes/sample.js",
@@ -349,24 +1265,49 @@
       "sha256": "deda169b8e8fe583b313d97051d7badb094bf03d545a9a337b1a9c498ef2716f"
     },
     {
+      "path": "docs/synth-snes/song_controls.js",
+      "bytes": 2663,
+      "sha256": "6679ae95489cec4545d1675568e5e5f1414a82676d9b88f875b4b86886a29130"
+    },
+    {
+      "path": "docs/synth-snes/song_player.js",
+      "bytes": 10055,
+      "sha256": "4793d59063b53309916d3b4fa65141ebbe9d684ab84ef4620afbd440b398d7f7"
+    },
+    {
+      "path": "docs/synth-snes/song_seek_controls.js",
+      "bytes": 4027,
+      "sha256": "0775c3df91b812df325171aaf13e358758b0ae8512b69b5fb391c0dbbda622f7"
+    },
+    {
       "path": "docs/synth-snes/spc_browser.js",
-      "bytes": 17047,
-      "sha256": "7ff4719a6150c2ebeba1041777be45c92fa07eba27cbd5ef0536d06a308c4e47"
+      "bytes": 17533,
+      "sha256": "288d9b4cd1188846278c4855ea7c8c3d620ca80ccc3667453359883b17dde979"
     },
     {
       "path": "docs/synth-snes/spc_import.js",
-      "bytes": 13279,
-      "sha256": "bc24e4796ec9135cadba20b8909df68a7310d968242bdf4bf315fe7e99f26210"
+      "bytes": 14153,
+      "sha256": "b07cb9cc25767cdf3f50c3f0783d969cf020ba7d65a5a16a1c4fc7caafbd7607"
+    },
+    {
+      "path": "docs/synth-snes/spc_live.js",
+      "bytes": 4633,
+      "sha256": "9cc0bf7d950020db1318c3443cec2f66042cf1562f5c30debcbf0aabe5da02f8"
     },
     {
       "path": "docs/synth-snes/synth.css",
-      "bytes": 10331,
-      "sha256": "8ed321a222648e22291b54ce17b7bfa868aa6f4afa3d9a7ffe3c0b794862cf32"
+      "bytes": 26263,
+      "sha256": "b3646d41c1d6ab63c448cb570af433b39dfa6a99762e4cd61bb4c78c3d49e330"
     },
     {
       "path": "docs/synth-snes/synth.js",
-      "bytes": 22686,
-      "sha256": "a32ab58e08f64f563074d26fd1598eec78af8f21d78110871095ee4682fad35b"
+      "bytes": 33622,
+      "sha256": "009661c0c32b7f7d0b33f20626aabf687f08af4e13900d3e23d5be808ddf12e0"
+    },
+    {
+      "path": "docs/synth-spu/file_context_menu.js",
+      "bytes": 6313,
+      "sha256": "246c5bc3108826c68c85c3539c45bafa939e1ef99d69dd84cf81b416e40786c3"
     },
     {
       "path": "docs/synth-spu/spu_synth_visualizer.js",
@@ -375,13 +1316,43 @@
     },
     {
       "path": "docs/synth-spu/synth.css",
-      "bytes": 23333,
-      "sha256": "8e45689b279e52db21c5ed6b29e26bd5d10896abcd8c834a1d77bc6950dcd0ad"
+      "bytes": 36580,
+      "sha256": "d3c1a57beb040cb1a4cecea807eeb9c15aa527a9d036c4c04f8d11ca67b56869"
+    },
+    {
+      "path": "docs/synth/synth_code_controls.js",
+      "bytes": 21848,
+      "sha256": "a95e856263570b9e77ba3a97a8eb9ef58564c55472da17de4f67a5c3ffc95216"
+    },
+    {
+      "path": "docs/synth/synth_code_declarations.js",
+      "bytes": 7464,
+      "sha256": "5f1a800a38b76e63fbb055c0eea3a4277b75e35cc9270ce1f0bdd1dd682584e6"
+    },
+    {
+      "path": "docs/synth/synth_code_output.js",
+      "bytes": 4973,
+      "sha256": "dca6ef03aca997f55fda55684fd6e0aa8dd8beb246c68a59ef8ac85efab4e112"
+    },
+    {
+      "path": "docs/synth/synth_code_project.js",
+      "bytes": 1623,
+      "sha256": "7fbc1f8b5df80b2fbbfb4d19fa1f36906563f8762317466102ba19d228d17026"
+    },
+    {
+      "path": "docs/synth/synth_draft_store.js",
+      "bytes": 3656,
+      "sha256": "e5425ddf930f0860531aa8566c6ed122577598447876c17b1ce10384f96335b6"
     },
     {
       "path": "docs/synth/synth_keyboard.js",
       "bytes": 10010,
       "sha256": "b7dc1daea64aa6e061bfdb2295010ee24eddaba51ab7ab6cf87c0f751be7c795"
+    },
+    {
+      "path": "docs/synth/synth_project_store.js",
+      "bytes": 1835,
+      "sha256": "6ec7a4b2f234285636a406170359810be96aba58de18e3f7450ac19f3eba1636"
     },
     {
       "path": "docs/tetorica_sdsp_synth.webp",
@@ -395,8 +1366,18 @@
     },
     {
       "path": "package.json",
-      "bytes": 4954,
-      "sha256": "4d4fa1e2319c354abafc420bc9b44cc882d5be7629f256c0768c99f7362abda5"
+      "bytes": 9781,
+      "sha256": "7fb184f62d3c54e64df8d5589714b8cdbe09148d5bc52d5720ea65e22206e796"
+    },
+    {
+      "path": "packages/virtual-files/LICENSE",
+      "bytes": 1519,
+      "sha256": "2d2e9213c170a9866c616fa85b6da993a6724e10befc61f468ed9bfb84c4691c"
+    },
+    {
+      "path": "scripts/build_native_audio_effect.sh",
+      "bytes": 2183,
+      "sha256": "195f57fa21ea429411030232b753992556214f45c62588aa2ace7bceb231abe1"
     },
     {
       "path": "scripts/copy_readable_modules.mjs",
@@ -410,8 +1391,8 @@
     },
     {
       "path": "scripts/package_itch_snes_synth.mjs",
-      "bytes": 9106,
-      "sha256": "4a26855450b59c00eb1d4a49c4337ca08093f4763d795ed9c898c8a267946551"
+      "bytes": 11405,
+      "sha256": "766226007d03916c9f7232aeccfdd628dccaf6e5611d073d18e860a3de101ffb"
     },
     {
       "path": "scripts/package_itch_snes_synth.sh",
@@ -420,8 +1401,8 @@
     },
     {
       "path": "scripts/runtime_artifacts.mjs",
-      "bytes": 17918,
-      "sha256": "a811bffb77472b2d3d8b11c57d0477e216b867d00c75bf844b4089af0fb69d39"
+      "bytes": 18593,
+      "sha256": "249a68c61e575a83410e354afeff7ff5956d786ebd1f5608be2a2f960aa0998a"
     },
     {
       "path": "scripts/wasm_sdk_inventory.mjs",
@@ -429,18 +1410,88 @@
       "sha256": "b65e5e1966756e6f20f4a47989611a0f1b702446e97d748f92e87eaad245bab5"
     },
     {
+      "path": "tetorica_src/native/audio_effect/compressor.c",
+      "bytes": 2314,
+      "sha256": "6e3e2c7588f0be7f35378b6698340e7aea21cecce1cd6be7cb6ebe046b670784"
+    },
+    {
+      "path": "tetorica_src/native/audio_effect/compressor.h",
+      "bytes": 289,
+      "sha256": "981f36abf7fbf33be3de482a2200b539cbd6d562011018a9660976ae69c96c4c"
+    },
+    {
+      "path": "tetorica_src/native/audio_effect/eq.c",
+      "bytes": 2546,
+      "sha256": "0ade21edfddf0aab6d3c6d145e9464ba1a03cc9e78f85a12ee0fa95e7e998d0f"
+    },
+    {
+      "path": "tetorica_src/native/audio_effect/extra_fx.c",
+      "bytes": 7536,
+      "sha256": "1b6cad91d18f3080bb921f39398312830b72b0775b47ebf34f80ffe2966577b3"
+    },
+    {
+      "path": "tetorica_src/native/audio_effect/extra_fx.h",
+      "bytes": 407,
+      "sha256": "1eb9d97ff152403f382878377e13710591d5cb8fb2297e1457e18220bf19b7a3"
+    },
+    {
+      "path": "tetorica_src/native/audio_effect/gain.c",
+      "bytes": 2081,
+      "sha256": "1a769210e885c1f3a0c47dba745bcfa395eb5c6d9306ddcc2d5c101a88fde6a3"
+    },
+    {
+      "path": "tetorica_src/native/audio_effect/graph.c",
+      "bytes": 3847,
+      "sha256": "8637dff231d3960961f043b1f2738d79264a6f5d8abe6de3f3029d15e7cd9f61"
+    },
+    {
+      "path": "tetorica_src/native/audio_effect/noise.c",
+      "bytes": 4153,
+      "sha256": "b32e4f637782c4a9a35cfaf0c1134d68fa9977db75e4033e0d4fbc0738c11e71"
+    },
+    {
+      "path": "tetorica_src/native/audio_effect/noise_gate.c",
+      "bytes": 2821,
+      "sha256": "6fc3d87e6d0f0b418ab405c7f24163958e54c82e92b6ae58c524c66d86b24325"
+    },
+    {
+      "path": "tetorica_src/native/audio_effect/noise_gate.h",
+      "bytes": 298,
+      "sha256": "5258f6bed8e8a8e38b5a811008e6611712af75cb0887a63f98a34589447046e6"
+    },
+    {
+      "path": "tetorica_src/native/audio_effect/reverb.c",
+      "bytes": 2850,
+      "sha256": "983469a02979c04189b7e0ca6c3b1a3360f8ab8bb2cf34cfe1b3154a0b587d19"
+    },
+    {
+      "path": "tetorica_src/native/audio_effect/reverb.h",
+      "bytes": 212,
+      "sha256": "a1f465433a8e70fcb2c8ad8b8634c88fb44918051f68f3714b63810ae7c87c60"
+    },
+    {
+      "path": "tetorica_src/native/audio_effect/sample.c",
+      "bytes": 5119,
+      "sha256": "9c6971c6ce67c97b639e036eb76edac7f3215544d7b978c6ce646a53a93fdb32"
+    },
+    {
+      "path": "tetorica_src/runtime/generated/effects/gain.wasm",
+      "bytes": 48297,
+      "sha256": "d5183259003b3f7fdda5ba1f85e69c10687e95d13f5499fa2f5fbcf08d3de290"
+    },
+    {
       "path": "tetorica_src/runtime/generated/spc_wasm.js",
-      "bytes": 41458,
-      "sha256": "13106eb82513dac0b3d3e4983b9cb1843eedcdf698ec385a5a91cf9d1d27b699"
+      "bytes": 41763,
+      "sha256": "279706319f2f477beee134442a4b1fb823ff24f843ecfcc22f9d58d4e95fdd03"
     }
   ],
   "sourceArchive": {
     "path": "sources/sdsp-synth-browser-inputs.zip",
-    "bytes": 419609,
-    "sha256": "bb4a245c0717454fd683656ce536ffd87921c6d9577e6d818b964149ecdf4d79"
+    "bytes": 726145,
+    "sha256": "a9a37913fb1ac38fc929c4ce3bdc57af3e2f971622eb53764e388f9f82129d20"
   },
   "sourceCheck": {
-    "inputs": 27,
-    "sdkVersion": "0.1.7"
+    "inputs": 43,
+    "sdkVersion": "0.1.8-huc-spc-edit"
   }
 }

@@ -1,17 +1,20 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // Copyright (c) 2026 kyorohiro.
 import {createDefaultPreset, readPreset, waveShape, envelopeRegisters,
-  modulatorEnvelopeRegisters, pmonActive, pmonSampleBytes, sampleBudget, presetBankKey} from './preset.js';
+  modulatorEnvelopeRegisters, pmonActive, pmonSampleBytes, sampleBudget, presetBankKey} from './preset.js?v=sdsp-live-wave-1';
 import {decodeBase64, encodeBase64} from './sample.js';
 import {decodeBrr} from '../js/snes_brr.js';
+import {createAdsrGraph} from './adsr_graph.js';
 
 /** Passive sound editor: drawing and file conversion do not open an audio device. */
-export function createEditor({root, onChange = () => {}, onError = () => {},
+export function createEditor({root, isReadOnly=()=>false, onChange = () => {}, onVoiceEdit=async()=>{}, onError = () => {},
   onLoadAudio = async () => {throw new Error('Audio loading is not connected');},
   onLoadBrr = async () => {throw new Error('BRR loading is not connected');}}) {
   const doc = root.ownerDocument, win = doc.defaultView ?? globalThis;
   const cleanups = [], fields = new Map(), pointerControls = new WeakSet();
-  let preset = createDefaultPreset(), disposed = false, stroke = null, waveTarget = 'carrier';
+  let preset = createDefaultPreset(), disposed = false, stroke = null, waveTarget = 'carrier', snapshotPreview=null, channel=null, binding=null, editSequence=0;
+  const voiceDrafts=new Map(),pendingEdits=new Set();
+  const voiceKeys={volumeLeft:'volumeLeft',volumeRight:'volumeRight',basePitch:'pitch',envelopeMode:'envelopeMode',attack:'attack',decay:'decay',sustainLevel:'sustainLevel',sustainRate:'sustainRate',gainMode:'gainMode',gainLevel:'gainLevel',gainRate:'gainRate'};
   let importRate = 16000, loadRequest = 0, loadController = null, committingImport = false;
   const previews = new Map();let previewBins = null;
   const make = (tag, className, text) => {
@@ -25,8 +28,36 @@ export function createEditor({root, onChange = () => {}, onError = () => {},
     cleanups.push(() => element.removeEventListener(type, listener, options));
   };
   const report = error => { if (!disposed) onError(error); };
+  function voiceValue(key){
+    if(voiceDrafts.has(key))return voiceDrafts.get(key).value;
+    const voice=channel?.voice;if(!voice)return undefined;
+    return key==='gainLevel'?voice.gain&127:key==='gainRate'?voice.gain&31:voice[key];
+  }
+  function controlValue(id,get){
+    if(channel&&id==='loopBrr')return snapshotPreview?snapshotPreview.loop: get(preset);
+    if(channel&&id==='loopStartSamples'&&snapshotPreview)return snapshotPreview.loopStartSamples??0;
+    if(channel&&id==='source')return channel.voice?.noise?'noise':'brr';
+    return channel&&voiceKeys[id]?voiceValue(voiceKeys[id])??get(preset):get(preset);
+  }
+  function controlDisabled(id,disabled,local=false){return disabled||Boolean(channel&&(channel.busy||(!voiceKeys[id]&&!(local&&id==='waveTarget'))||!channel.voice));}
+  function paintEditStatus(){
+    root.dataset.editPending=String(pendingEdits.size);editStatus.hidden=!channel;
+    if(pendingEdits.size)editStatus.textContent=`Applying CH${channel.index+1}…`;
+  }
+  function changeControl(id,value,set){
+    if(!channel){commit(next=>set(next,value));return;}
+    const key=voiceKeys[id];if(key)changeVoiceFields({[key]:value});
+  }
+  function changeVoiceFields(changes){
+    if(!channel||channel.busy||!channel.voice)return;
+    const owner=binding,ticket=++editSequence;for(const [key,value]of Object.entries(changes))voiceDrafts.set(key,{value,ticket});pendingEdits.add(ticket);render();
+    let request;try{request=onVoiceEdit(changes);}catch(error){request=Promise.reject(error);}
+    Promise.resolve(request).then(()=>{if(!disposed&&binding===owner)editStatus.textContent=`CH${channel.index+1} updated · later driver writes take precedence.`;})
+      .catch(error=>{if(!disposed&&binding===owner){editStatus.textContent=error.name==='AbortError'?'Edit cancelled.':`Edit failed: ${error.message}`;if(error.name!=='AbortError')report(error);}})
+      .finally(()=>{if(disposed||binding!==owner)return;pendingEdits.delete(ticket);for(const key of Object.keys(changes))if(voiceDrafts.get(key)?.ticket===ticket)voiceDrafts.delete(key);render();});
+  }
   function commit(mutator) {
-    if (disposed) return;
+    if (disposed || isReadOnly() || channel) return;
     try {
       cancelLoad('Conversion cancelled after editing the instrument. Current sample kept.');
       const next = readPreset(preset); mutator(next);
@@ -75,25 +106,25 @@ export function createEditor({root, onChange = () => {}, onError = () => {},
       group.append(button); return button;
     });
     function refresh() {
-      const selected = String(get(preset));
-      group.setAttribute('aria-disabled', String(disabled));
+      const selected = String(controlValue(id,get));
+      group.setAttribute('aria-disabled', String(controlDisabled(id,disabled,local)));
       for (const button of buttons) {
         const checked = button.dataset.choiceValue === selected;
-        button.setAttribute('aria-checked', String(checked)); button.disabled = disabled;
-        button.tabIndex = checked && !disabled ? 0 : -1;
+        button.setAttribute('aria-checked', String(checked)); button.disabled = controlDisabled(id,disabled,local);
+        button.tabIndex = checked && !controlDisabled(id,disabled,local) ? 0 : -1;
       }
     }
     function choose(value, focus = false) {
-      if (disabled) return;
-      if (value !== String(get(preset))) {
+      if (controlDisabled(id,disabled,local)) return;
+      if (value !== String(controlValue(id,get))) {
         if (local) {set(preset, value);render();}
-        else commit(preset => set(preset, value));
+        else changeControl(id,value,set);
       }
       if (focus) buttons.find(button => button.dataset.choiceValue === value)?.focus();
     }
     listen(group, 'keydown', event => {
-      if (disabled) return;
-      const current = Math.max(0, buttons.findIndex(button => button.dataset.choiceValue === String(get(preset))));
+      if (controlDisabled(id,disabled,local)) return;
+      const current = Math.max(0, buttons.findIndex(button => button.dataset.choiceValue === String(controlValue(id,get))));
       let index;
       if (event.key === 'ArrowRight' || event.key === 'ArrowDown') index = (current + 1) % buttons.length;
       else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') index = (current + buttons.length - 1) % buttons.length;
@@ -106,6 +137,7 @@ export function createEditor({root, onChange = () => {}, onError = () => {},
     return {setDisabled(value) {disabled = value;refresh();}};
   }
   function number(parent, label, id, min, max, get, set, step = 1, {fractional = false} = {}) {
+    const minimum=()=>typeof min==='function'?min(preset):min;
     const row = make('div', 'sdsp-field'), title = make('span', '', label);
     title.id = `${id}Label`; row.append(title); parent.append(row);
     const group = make('div', 'sdsp-stepper'); group.setAttribute('role', 'group');
@@ -113,7 +145,7 @@ export function createEditor({root, onChange = () => {}, onError = () => {},
     const minus = make('button', 'sdsp-stepper-button', '−'), plus = make('button', 'sdsp-stepper-button', '+');
     const output = make('output', 'sdsp-stepper-value'); output.id = id;
     output.tabIndex = 0; output.setAttribute('role', 'spinbutton');
-    output.setAttribute('aria-labelledby', title.id); output.setAttribute('aria-valuemin', String(min)); output.setAttribute('aria-valuemax', String(typeof max === 'function' ? max(preset) : max));
+    output.setAttribute('aria-labelledby', title.id); output.setAttribute('aria-valuemin', String(minimum())); output.setAttribute('aria-valuemax', String(typeof max === 'function' ? max(preset) : max));
     output.title = 'Drag left or right, or use the arrow keys.';
     let disabled = false, drag = null;
     for (const [button, delta, verb] of [[minus, -1, 'Decrease'], [plus, 1, 'Increase']]) {
@@ -123,39 +155,40 @@ export function createEditor({root, onChange = () => {}, onError = () => {},
         if (event.button !== 0) return;
         event.preventDefault(); doc.activeElement?.blur();
       });
-      listen(button, 'click', () => adjust(get(preset) + delta * step));
+      listen(button, 'click', () => adjust(controlValue(id,get) + delta * step));
     }
     group.append(minus, output, plus);
     function refresh() {
-      const value = get(preset), shown = fractional ? value.toLocaleString('en-US', {useGrouping:false, maximumFractionDigits:3}) : String(value);
+      const value = controlValue(id,get), shown = fractional ? value.toLocaleString('en-US', {useGrouping:false, maximumFractionDigits:3}) : String(value);
+      output.setAttribute('aria-valuemin',String(minimum()));
       output.setAttribute('aria-valuemax', String(typeof max === 'function' ? max(preset) : max));
       output.textContent = fractional && Number(shown) !== value ? `≈${shown}` : shown;
       output.title = `${value} · Drag left or right, or use the arrow keys.`;
-      output.setAttribute('aria-valuenow', String(value)); output.setAttribute('aria-disabled', String(disabled));
-      group.setAttribute('aria-disabled', String(disabled));
-      output.tabIndex = disabled ? -1 : 0;
-      minus.disabled = disabled || value <= min; plus.disabled = disabled || value >= (typeof max === 'function' ? max(preset) : max);
+      output.setAttribute('aria-valuenow', String(value)); output.setAttribute('aria-disabled', String(controlDisabled(id,disabled)));
+      group.setAttribute('aria-disabled', String(controlDisabled(id,disabled)));
+      output.tabIndex = controlDisabled(id,disabled) ? -1 : 0;
+      minus.disabled = controlDisabled(id,disabled) || value <= minimum(); plus.disabled = controlDisabled(id,disabled) || value >= (typeof max === 'function' ? max(preset) : max);
     }
     function adjust(value) {
-      if (disabled) return;
-      const next = Math.max(min, Math.min(typeof max === 'function' ? max(preset) : max, fractional ? value : Math.round(value / step) * step));
-      if (next !== get(preset)) commit(value => set(value, next));
+      if (controlDisabled(id,disabled)) return;
+      const next = Math.max(minimum(), Math.min(typeof max === 'function' ? max(preset) : max, fractional ? value : Math.round(value / step) * step));
+      if (next !== controlValue(id,get)) changeControl(id,next,set);
     }
     listen(group, 'keydown', event => {
       let next;
-      if (event.key === 'ArrowRight' || event.key === 'ArrowUp') next = get(preset) + step;
-      else if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') next = get(preset) - step;
-      else if (event.key === 'PageUp') next = get(preset) + step * 10;
-      else if (event.key === 'PageDown') next = get(preset) - step * 10;
-      else if (event.key === 'Home') next = min;
+      if (event.key === 'ArrowRight' || event.key === 'ArrowUp') next = controlValue(id,get) + step;
+      else if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') next = controlValue(id,get) - step;
+      else if (event.key === 'PageUp') next = controlValue(id,get) + step * 10;
+      else if (event.key === 'PageDown') next = controlValue(id,get) - step * 10;
+      else if (event.key === 'Home') next = minimum();
       else if (event.key === 'End') next = typeof max === 'function' ? max(preset) : max;
       else return;
       event.preventDefault(); event.stopPropagation(); adjust(next);
     });
     listen(output, 'pointerdown', event => {
-      if (disabled || event.button !== 0) return;
+      if (controlDisabled(id,disabled) || event.button !== 0) return;
       event.preventDefault(); doc.activeElement?.blur();
-      drag = {id: event.pointerId, x: event.clientX, value: get(preset)};
+      drag = {id: event.pointerId, x: event.clientX, value: controlValue(id,get)};
       output.setPointerCapture(event.pointerId); output.classList.add('is-dragging');
     });
     listen(output, 'pointermove', event => {
@@ -168,7 +201,7 @@ export function createEditor({root, onChange = () => {}, onError = () => {},
     }
     for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) listen(output, type, endDrag);
     listen(win, 'blur', endDrag);
-    fields.set(id, {input: output, get, update: refresh});
+    fields.set(id, {input: output, get, update: refresh, cancelGesture:endDrag});
     return {setDisabled(value) {disabled = value;if(disabled) endDrag();refresh();}};
   }
   function checkbox(parent, label, id, get, set) {
@@ -183,14 +216,15 @@ export function createEditor({root, onChange = () => {}, onError = () => {},
     if (id) element.id = id;
     const summary = make('summary', '', title), content = make('div', 'sdsp-card-content');
     element.append(summary, content); body.append(element);
-    return {element, content};
+    return {element, content, summary};
   }
   function section(parent, title) {
     const element = make('div', 'sdsp-subsection'); element.append(make('h4', '', title)); parent.append(element); return element;
   }
   function group(parent) { const element = make('div', 'sdsp-fields'); parent.append(element); return element; }
   function help(parent, text) { const element = make('p', 'sdsp-help', text); parent.append(element); return element; }
-  const body = make('div', 'sdsp-editor'); root.append(body);
+  const editStatus=make('p','sdsp-help');editStatus.id='channelEditStatus';editStatus.setAttribute('role','status');editStatus.hidden=true;
+  const body = make('div', 'sdsp-editor'); root.append(editStatus,body);
   const sourceBar = make('div', 'sdsp-source-bar'); body.append(sourceBar);
   select(sourceBar, 'Sound source', 'source', [['wave', 'Drawn wave'], ['brr', 'BRR sample'], ['noise', 'Noise']],
     value => value.source, (value, source) => {value.source = source;});
@@ -234,6 +268,7 @@ export function createEditor({root, onChange = () => {}, onError = () => {},
   const pmonSource = select(modSourceFields, 'Modulator source', 'pmonSource', [['wave','Drawn wave'],['brr','BRR sample']],
     value => value.pmon.source, (value, source) => {value.pmon.source = source;});
   const sampleInfo = make('p', 'sdsp-sample-info'); sampleInfo.id = 'sampleInfo'; sampleCard.content.append(sampleInfo);
+  const capturedLoopInfo=make('p','sdsp-captured-loop');capturedLoopInfo.id='capturedLoopInfo';sampleCard.content.append(capturedLoopInfo);
   const shapeActions = make('div', 'sdsp-wave-actions'); sampleCard.content.append(shapeActions);
   for (const [name, label] of [['sine','Sine'],['triangle','Triangle'],['saw','Saw'],['square','Square']]) {
     const button = make('button', '', label); button.type = 'button'; button.dataset.waveShape = name; shapeActions.append(button);
@@ -246,11 +281,11 @@ export function createEditor({root, onChange = () => {}, onError = () => {},
   const canvas = make('canvas'); canvas.id = 'waveCanvas'; canvas.width = 900; canvas.height = 210; canvas.setAttribute('role', 'img');
   sampleCard.content.append(canvas);
   const waveReadout = make('p', 'sdsp-wave-readout'); waveReadout.id = 'waveReadout'; waveReadout.setAttribute('aria-live', 'polite'); sampleCard.content.append(waveReadout);
-  const drawingHint = help(sampleCard.content, 'Draw one 128-point cycle here. Releasing a stroke or choosing a shape prepares a new BRR loop and stops held notes. Drawing / encoding are software tools; the output monitor shows the S-DSP result after BRR decoding and Gaussian interpolation.');
+  const drawingHint = help(sampleCard.content, 'Draw one 128-point cycle here. Releasing a stroke or choosing a shape updates its BRR loop while held notes and release tails keep playing. Drawing / encoding are software tools; the output monitor shows the S-DSP result after BRR decoding and Gaussian interpolation.');
 
   const tuning = section(sampleCard.content, 'BRR reference pitch & loop'), tuningFields = group(tuning);
   number(tuningFields, 'Root MIDI note', 'rootNote', 0, 127, value => value.brr.rootNote, (value, note) => {value.brr.rootNote = note;});
-  number(tuningFields, 'PITCH at Root', 'basePitch', 1, 16383, value => value.brr.basePitch, (value, pitch) => {value.brr.basePitch = pitch;});
+  number(tuningFields, 'PITCH at Root', 'basePitch', ()=>channel?0:1, 16383, value => value.brr.basePitch, (value, pitch) => {value.brr.basePitch = pitch;});
   const loopBrr = checkbox(tuningFields, 'Loop sample', 'loopBrr', value => value.brr.loopStartSamples !== null, (value, enabled) => {
     if (!value.brr.data) return;
     const data = Uint8Array.from(decodeBase64(value.brr.data)), last = data.length - 9;
@@ -276,6 +311,8 @@ export function createEditor({root, onChange = () => {}, onError = () => {},
     () => preset.source === 'noise' ? 0 : Math.max(0, decodedSample('modulator').pcm.length - 16),
     value => value.pmon.brr.loopStartSamples ?? 0, (value, frame) => {value.pmon.brr.loopStartSamples = frame;}, 16);
   help(pmonTuning, 'Modulator BRR has its own declared Root / base PITCH and loop. Ratio multiplies that playback speed after keyboard transposition; it does not infer the sample’s original fundamental. Loop edits stop notes / Echo tails; tuning changes apply while playing.');
+
+  for(const element of [actions,importStatus,conversionFields,sampleBudgetInfo,targetFields,modSourceFields,shapeActions,drawingHint,tuning,pmonTuning])element.classList.add('sdsp-sample-authoring');
 
   const echoCard = card('S-DSP Echo', 'echoSection');
   const echoSwitches = group(echoCard.content); echoSwitches.classList.add('sdsp-echo-switches');
@@ -342,6 +379,8 @@ export function createEditor({root, onChange = () => {}, onError = () => {},
 
   const envelopeCard = card('Envelope · S-DSP hardware', 'envelopeSection'), envelopeFields = group(envelopeCard.content);
   select(envelopeFields, 'Envelope mode', 'envelopeMode', [['adsr','ADSR'],['gain','GAIN']], value => value.envelope.mode, (value, mode) => {value.envelope.mode = mode;});
+  const graphRoot=make('div');envelopeCard.content.append(graphRoot);
+  const adsrGraph=createAdsrGraph({root:graphRoot,onChange:changes=>{if(channel)changeVoiceFields(changes);else commit(next=>Object.assign(next.envelope,changes));}});
   const adsrFields = group(envelopeCard.content);
   const adsrControls = [
     number(adsrFields, 'Attack · code 0–15', 'attack', 0, 15, value => value.envelope.attack, (value, code) => {value.envelope.attack = code;}),
@@ -368,6 +407,7 @@ export function createEditor({root, onChange = () => {}, onError = () => {},
     if (message) setLoadStatus(message);
   }
   async function importFile(kind, file, target = selectedTarget()) {
+    if(channel)return;
     if (target !== selectedTarget()) {setLoadStatus('File selection cancelled after changing the edit target. Current samples kept.');return;}
     cancelLoad();const token = ++loadRequest, controller = new AbortController();loadController = controller;committingImport = false;
     cancelImport.hidden = false;conversionRate.setDisabled(true);
@@ -402,6 +442,7 @@ export function createEditor({root, onChange = () => {}, onError = () => {},
   listen(cancelImport, 'click', () => {cancelImport.blur();cancelLoad('Import cancelled. Current sample kept.');});
 
   function decodedSample(target = 'carrier') {
+    if(snapshotPreview)return snapshotPreview;
     const data = (target === 'modulator' ? preset.pmon.brr : preset.brr).data;
     let cached = previews.get(target);
     if (!cached || cached.data !== data) {
@@ -410,8 +451,9 @@ export function createEditor({root, onChange = () => {}, onError = () => {},
     }
     return cached.decoded;
   }
-  function selectedTarget() {return pmonActive(preset) && waveTarget === 'modulator' ? 'modulator' : 'carrier';}
+  function selectedTarget() {if(snapshotPreview)return 'carrier';return pmonActive(preset) && waveTarget === 'modulator' ? 'modulator' : 'carrier';}
   function editableTarget() {
+    if(channel||snapshotPreview)return null;
     if (selectedTarget() === 'modulator') return preset.pmon.source === 'wave' ? 'modulator' : null;
     return preset.source === 'wave' ? 'carrier' : null;
   }
@@ -424,7 +466,7 @@ export function createEditor({root, onChange = () => {}, onError = () => {},
     return true;
   }
   function drawWave(samples = stroke?.samples) {
-    if (disposed || preset.source === 'noise' || !canvasVisible()) return;
+    if (disposed || (!snapshotPreview&&preset.source === 'noise') || !canvasVisible()) return;
     const target = editableTarget(), displayedTarget = selectedTarget();
     const width = canvas.width, height = canvas.height, left = 28, right = width - 15, top = 16, bottom = height - 28;
     const y = value => top + (1 - value) / 2 * (bottom - top), context = canvas.getContext('2d');if (!context) return;
@@ -525,13 +567,19 @@ export function createEditor({root, onChange = () => {}, onError = () => {},
   listen(win,'resize',()=>{cancelStroke();resizeWave();});
   function render() {
     if(disposed)return;
-    for(const field of fields.values()){
+    paintEditStatus();
+    for(const [id,field] of fields){
       if(field.update){field.update();continue;}
-      if(field.input.type==='checkbox')field.input.checked=field.get(preset);
+      if(field.input.type==='checkbox'){field.input.checked=controlValue(id,field.get);field.input.disabled=Boolean(channel);}
     }
-    const isWave=preset.source==='wave',isBrr=preset.source==='brr',isNoise=preset.source==='noise',hasBrr=Boolean(preset.brr.data),isGain=preset.envelope.mode==='gain';
+    const isNoise=channel?Boolean(channel.voice?.noise):preset.source==='noise',isWave=!channel&&preset.source==='wave',isBrr=channel?!isNoise:preset.source==='brr',hasBrr=Boolean(preset.brr.data),isGain=controlValue('envelopeMode',value=>value.envelope.mode)==='gain';
     const activePmon=pmonActive(preset),target=editableTarget(),displayedTarget=selectedTarget(),isModulator=displayedTarget==='modulator';
+    const graphEnvelope={...preset.envelope,...Object.fromEntries(Object.keys(preset.envelope).map(key=>[key,controlValue(key==='mode'?'envelopeMode':key,value=>value.envelope[key])]))};
+    adsrGraph.update({envelope:graphEnvelope,disabled:isGain||controlDisabled('attack',false)||isReadOnly(),owner:channel?binding:`auto:${preset.name}:${presetBankKey(preset)}`});
     const modBrr=preset.pmon.source==='brr',hasModBrr=Boolean(preset.pmon.brr.data);
+    sampleCard.summary.textContent=isReadOnly()?'Sample · decoded BRR / PCM':'Sample · software preparation / BRR playback';
+    const displayedBrr=isModulator?preset.pmon.brr:preset.brr;
+    capturedLoopInfo.textContent=snapshotPreview?.unavailable?'Loop data unavailable':snapshotPreview?(snapshotPreview.loop?(snapshotPreview.loopResolved?`Loop start · sample frame ${snapshotPreview.loopStartSamples}`:`Loop address · 0x${snapshotPreview.loopAddress.toString(16).padStart(4,'0')} · unresolved`):'One-shot · no sample loop'):displayedBrr.loopStartSamples===null?'One-shot · no sample loop':`Loop start · sample frame ${displayedBrr.loopStartSamples.toLocaleString('en-US')}`;
     noiseCard.element.hidden=!isNoise;sampleCard.element.hidden=isNoise;
     noiseHint.textContent=preset.noise.clock===0
       ?'Clock 0 holds the generator’s current value instead of advancing it. This can be a steady DC level; choose a nonzero clock for a changing noise texture.'
@@ -546,14 +594,14 @@ export function createEditor({root, onChange = () => {}, onError = () => {},
       ?(preset.echo.enabled?'Echo is enabled. Send adds the newly played Noise envelopes to Echo; Return controls the delayed signal.':'Echo is off. Enable it to add the shared hardware Echo / FIR path to Noise.')
       :preset.echo.enabled?'Echo is enabled. Send adds new carrier notes to Echo; Return controls the delayed signal. The carrier sample limit is '+echoMaxBytes+' BRR bytes.'
         :'Echo is off. You can prepare its settings here, then enable it to hear the result. Enabling Echo reduces the carrier sample limit to '+echoMaxBytes+' BRR bytes; a sample that does not fit is kept with Echo off.';
-    sourceHint.textContent=isNoise?'One hardware Noise generator shared by eight voice envelopes. Noise clock changes its texture; keys do not tune it.'
+    sourceHint.textContent=channel?`CH${channel.index+1} · edit this SPC voice. Later driver writes take precedence. Copy to Auto to replace samples or edit shared settings.`:isNoise?'One hardware Noise generator shared by eight voice envelopes. Noise clock changes its texture; keys do not tune it.'
       :(isWave?'One 128-point cycle, encoded as a BRR loop.':'One BRR carrier sample; Root / PITCH declare its tuning.')+(activePmon?' Four PMON pairs use a '+(modBrr?'BRR sample':'drawn wave')+' modulator.':' Eight physical S-DSP voices play the keyboard.');
-    targetFields.hidden=!activePmon;modSourceFields.hidden=!isModulator;pmonSource.setDisabled(!activePmon);
-    shapeActions.hidden=!target;drawingHint.hidden=!target;tuning.hidden=!isBrr||isModulator;
+    targetFields.hidden=!activePmon||Boolean(snapshotPreview);modSourceFields.hidden=!isModulator;pmonSource.setDisabled(!activePmon);
+    shapeActions.hidden=!target;drawingHint.hidden=!target;tuning.hidden=!isBrr||(!channel&&isModulator);
     pmonTuning.hidden=!isModulator||!modBrr;
     drawingHint.textContent=isModulator
-      ?'Draw the modulator’s 128-point cycle here. Shape buttons change this selected wave. Releasing a stroke prepares its BRR loop and stops held notes / Echo tails. Audio / BRR file loads replace this selected modulator. Switch to Carrier to preview or edit its wave.'
-      :'Draw the carrier’s 128-point cycle here. Releasing a stroke or choosing a shape prepares a new BRR loop and stops held notes / Echo tails. Drawing / encoding are software tools; the output monitor shows the hardware result after BRR decoding, interpolation and modulation.';
+      ?'Draw the modulator’s 128-point cycle here. Shape buttons update this selected BRR loop without restarting notes, envelopes or Echo. Audio / BRR file loads replace this selected modulator and stop notes. Switch to Carrier to preview or edit its wave.'
+      :'Draw the carrier’s 128-point cycle here. Releasing a stroke or choosing a shape updates its BRR loop without restarting notes, envelopes or Echo. Drawing / encoding are software tools; the output monitor shows the hardware result after BRR decoding, interpolation and modulation.';
     canvas.dataset.editable=String(Boolean(target));canvas.dataset.waveTarget=isModulator?'modulator':'carrier';
     canvas.setAttribute('aria-label',isNoise?'Waveform editor inactive for hardware Noise':target?'Editable 128-point '+target+' waveform, normalized minus one to plus one':'Decoded BRR '+displayedTarget+' waveform overview');
     loopBrr.disabled=!isBrr||isModulator||!hasBrr;loopStart.setDisabled(!isBrr||isModulator||!hasBrr||preset.brr.loopStartSamples===null);
@@ -561,13 +609,13 @@ export function createEditor({root, onChange = () => {}, onError = () => {},
     pmonLoopStart.setDisabled(!isModulator||!modBrr||!hasModBrr||preset.pmon.brr.loopStartSamples===null);
     for(const control of adsrControls)control.setDisabled(isGain);
     gainMode.setDisabled(!isGain);gainLevel.setDisabled(!isGain||preset.envelope.gainMode!=='direct');
-    gainRate.setDisabled(!isGain||preset.envelope.gainMode==='direct');
-    const decrease=preset.envelope.gainMode.endsWith('decrease');
+    gainRate.setDisabled(!isGain||controlValue('gainMode',value=>value.envelope.gainMode)==='direct');
+    const decrease=controlValue('gainMode',value=>value.envelope.gainMode).endsWith('decrease');
     gainHint.textContent=!isGain?'ADSR controls the hardware envelope. Sustain rate 0 holds the sustain level.'
-      :preset.envelope.gainMode==='direct'?'Direct GAIN sets the hardware envelope level immediately.'
+      :controlValue('gainMode',value=>value.envelope.gainMode)==='direct'?'Direct GAIN sets the hardware envelope level immediately.'
       :decrease?'Decrease shapes reduce the current envelope. A new voice starts at zero; switch from Direct or ADSR while holding a key to hear the decrease.'
       :'Increase shapes grow from a new voice’s zero envelope. Rate code 0 holds the current envelope.';
-    const registers=envelopeRegisters(preset),hex=value=>'0x'+value.toString(16).padStart(2,'0');
+    const registers=envelopeRegisters(channel?{...preset,envelope:{...preset.envelope,...Object.fromEntries(['envelopeMode','attack','decay','sustainLevel','sustainRate','gainMode','gainLevel','gainRate'].map(key=>[key==='envelopeMode'?'mode':key,voiceValue(key)]))}}:preset),hex=value=>'0x'+value.toString(16).padStart(2,'0');
     registerInfo.textContent='DSP registers · ADSR1 '+hex(registers.adsr1)+' · ADSR2 '+hex(registers.adsr2)+' · GAIN '+hex(registers.gain);
     pmonEnabled.disabled=isNoise;pmonRatio.setDisabled(!activePmon);pmonEnvelopeMode.setDisabled(!activePmon);
     const modGain=preset.pmon.envelope.mode==='gain',modDirect=preset.pmon.envelope.gainMode==='direct';
@@ -591,7 +639,12 @@ export function createEditor({root, onChange = () => {}, onError = () => {},
             :'Increase grows modulation depth from zero. Rate code 0 holds the current envelope.';
     const modRegisters=modulatorEnvelopeRegisters(preset);
     pmonRegisterInfo.textContent='Modulator register settings · ADSR1 '+hex(modRegisters.adsr1)+' · ADSR2 '+hex(modRegisters.adsr2)+' · GAIN '+hex(modRegisters.gain);
-    if(isModulator&&!modBrr){
+    if(snapshotPreview?.unavailable){
+      sampleInfo.textContent='No extractable BRR sample for this CH.';waveReadout.textContent=channel.reason||'Sample data unavailable.';
+    }else if(snapshotPreview){
+      sampleInfo.textContent=`SRCN ${snapshotPreview.sourceNumber} · ${snapshotPreview.frames.toLocaleString('en-US')} decoded frames · ${snapshotPreview.bytes.toLocaleString('en-US')} BRR bytes · start 0x${snapshotPreview.startAddress.toString(16).padStart(4,'0')}`;
+      waveReadout.textContent='Decoded BRR overview · sample data only; this CH has no playable preset.';
+    }else if(isModulator&&!modBrr){
       sampleInfo.textContent='Modulator · 128 authored PCM points · one BRR loop · silent stereo gain · hardware envelope controls depth.';
       if(!stroke)waveReadout.textContent='Modulator · 128 points · release a stroke to apply';
     }else if(isWave&&!isModulator){
@@ -607,13 +660,19 @@ export function createEditor({root, onChange = () => {}, onError = () => {},
         :label+' · no BRR loaded · choose Load audio or Load BRR.';
       waveReadout.textContent=frames?label+' · decoded BRR overview · original root and loop address are not stored in BRR':label+' · no sample loaded';
     }
+    for(const node of [actions,conversionFields,modSourceFields,shapeActions,noiseFields,echoCard.content,pmonCard.content])node.inert=Boolean(channel);
+    actions.title=channel?'Copy to Auto to replace the sample.':'';
+    loopBrr.disabled=Boolean(channel)||loopBrr.disabled;pmonLoopBrr.disabled=Boolean(channel)||pmonLoopBrr.disabled;pmonEnabled.disabled=Boolean(channel)||pmonEnabled.disabled;
+    doc.getElementById('basePitchLabel').textContent=channel?'PITCH':'PITCH at Root';
+    for(const button of tuningFields.querySelectorAll('[data-stepper-for="basePitch"]'))button.setAttribute('aria-label',`${Number(button.dataset.stepperDelta)<0?'Decrease':'Increase'} ${channel?'PITCH':'PITCH at Root'}`);
     conversionRate.setDisabled(Boolean(loadController)||committingImport);resizeWave();
   }
   render();
   return {
-    update(value) {
+    update(value,{samplePreview=null,channel:nextChannel=null}={}) {
       if(disposed)return;
-      const next=readPreset(value);
+      const next=readPreset(value),nextBinding=nextChannel?`${nextChannel.sourceId}:${nextChannel.index}:${nextChannel.transportRevision}`:null;
+      if(nextBinding!==binding){for(const field of fields.values())field.cancelGesture?.();adsrGraph.cancel();voiceDrafts.clear();pendingEdits.clear();editStatus.textContent='';}binding=nextBinding;channel=nextChannel;snapshotPreview=channel&&!channel.hasPreset?(samplePreview??{pcm:new Float32Array(0),unavailable:true}):null;
       if(loadController&&(presetBankKey(next)!==presetBankKey(preset)||next.pmon.enabled!==preset.pmon.enabled))
         cancelLoad('Import cancelled after changing the instrument. Current sample kept.');
       cancelStroke();
@@ -625,7 +684,7 @@ export function createEditor({root, onChange = () => {}, onError = () => {},
     },
     dispose() {
       if(disposed)return;
-      cancelLoad();cancelStroke();disposed=true;previews.clear();previewBins=null;
+      cancelLoad();cancelStroke();adsrGraph.dispose();disposed=true;previews.clear();previewBins=null;
       for(const cleanup of cleanups)cleanup();body.remove();
     },
   };

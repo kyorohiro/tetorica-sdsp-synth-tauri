@@ -3,7 +3,7 @@
 
 export const SDSP_SYNTH_BALANCE = 1;
 const DEADLINE_MS = 15000;
-const COMMANDS = new Set(['read', 'setPreset', 'loadPreset', 'noteOn', 'noteOff', 'setPitch', 'stop']);
+const COMMANDS = new Set(['read', 'setPreset', 'loadPreset', 'noteOn', 'noteOff', 'setPitch', 'setMuteMask', 'stop']);
 
 function validateVolume(value) {
   if (!Number.isFinite(value) || value < 0 || value > 3.8) throw new RangeError('S-DSP Master must be from 0 to 3.8');
@@ -20,7 +20,7 @@ export async function createAudio({volume = .7, onError = () => {}} = {}) {
   if (!Context) throw new Error('This browser does not support Web Audio');
   const context = new Context({latencyHint:'interactive'});
   const controller = new AbortController(), pending = new Map();
-  let node = null, balance = null, master = null, disposed = false, closing = null;
+  let node = null, balance = null, master = null, codeInput = null, codeFade = null, songInput = null, chipBus = null, disposed = false, closing = null;
   let fatalError = null, nextId = 0, startupTimer = null, rejectStartup, readyResolve;
   let acceptedBrrData = '', acceptedModBrrData = '';
   const startupFailure = new Promise((_, reject) => { rejectStartup = reject; });
@@ -53,7 +53,8 @@ export async function createAudio({volume = .7, onError = () => {}} = {}) {
       node.port.close();
     }
     balance?.disconnect();
-    master?.disconnect();
+    master?.disconnect();songInput?.disconnect();chipBus?.disconnect();
+    codeInput?.disconnect();codeFade?.disconnect();
     closing = (async () => { if (context.state !== 'closed') await context.close(); })();
     return closing;
   }
@@ -82,7 +83,7 @@ export async function createAudio({volume = .7, onError = () => {}} = {}) {
         if (!response.ok) throw new Error(`S-DSP WASM could not load (HTTP ${response.status})`);
         return response.arrayBuffer();
       }),
-      context.audioWorklet.addModule(new URL('./processor.js', import.meta.url)),
+      context.audioWorklet.addModule(new URL('./processor.js?v=channel-mixer-1', import.meta.url)),
       resumed,
     ]));
     assertOpen();
@@ -123,7 +124,10 @@ export async function createAudio({volume = .7, onError = () => {}} = {}) {
     clearTimeout(startupTimer);
     balance = context.createGain(); balance.gain.value = SDSP_SYNTH_BALANCE;
     master = context.createGain(); master.gain.value = volume;
-    node.connect(balance); balance.connect(master); master.connect(context.destination);
+    codeInput=context.createGain();codeInput.gain.value=1;
+    codeFade=context.createGain();codeFade.gain.value=1;
+    songInput=context.createGain();songInput.gain.value=1;chipBus=context.createGain();chipBus.gain.value=1;songInput.connect(chipBus);chipBus.connect(master);
+    node.connect(balance);balance.connect(codeInput);codeInput.connect(codeFade);codeFade.connect(chipBus);master.connect(context.destination);
 
     async function command(method, args = []) {
       assertOpen();
@@ -155,12 +159,13 @@ export async function createAudio({volume = .7, onError = () => {}} = {}) {
       });
     }
     return {
-      context, outputNode:master, command, read:() => command('read'),
+      context, outputNode:master, songInputNode:songInput, codeInputNode:codeInput,codeOutputNode:codeFade,codeFadeNode:codeFade, command, read:() => command('read'),
       async resume() {
         assertOpen();
         try { await context.resume(); assertOpen(); }
         catch (error) { fail(error); throw error; }
       },
+      setChipVolume(value){assertOpen();validateVolume(value);chipBus.gain.setTargetAtTime?.(value,context.currentTime,.005);if(!chipBus.gain.setTargetAtTime)chipBus.gain.value=value;},
       setVolume(value) {
         assertOpen(); validateVolume(value);
         const parameter = master.gain, now = context.currentTime;

@@ -41,6 +41,7 @@ export function createSpcBrowser({root, onOpen, onSelect, onError = () => {}}) {
   input.setAttribute('aria-label', 'Choose SPC snapshot for sound extraction');
   const cancel = make('button', '', 'Cancel'); cancel.id = 'cancelSpcImport'; cancel.type = 'button'; cancel.hidden = true;
   actions.append(load, input, cancel); content.append(actions);
+  const liveRoot=make('div');liveRoot.id='spcLiveInspector';content.append(liveRoot);
   const hint = make('p', 'sdsp-help', 'Opening a file keeps the current instrument. Select a sound below to load it, then play the keyboard, edit it or save a preset.');
   content.append(hint);
   const echoOption = make('label', 'sdsp-spc-echo-option');
@@ -56,7 +57,7 @@ export function createSpcBrowser({root, onOpen, onSelect, onError = () => {}}) {
   const metadata = make('p', 'sdsp-spc-metadata'); metadata.id = 'spcMetadata'; metadata.hidden = true; content.append(metadata);
   const warnings = make('ul', 'sdsp-spc-warnings'); warnings.id = 'spcWarnings'; warnings.hidden = true; content.append(warnings);
   const list = make('div', 'sdsp-spc-candidates'); list.id = 'spcCandidates'; content.append(list);
-  content.append(make('p', 'sdsp-help', 'Snapshot voice settings only: no song playback, SPC700 driver updates, or restoration of the current envelope phase. For BRR voices, C4 is a declared audition reference at the captured PITCH, not the original musical root. Noise uses the shared clock instead of musical pitch. Activity is only an ENVX / OUTX snapshot heuristic; inactive voices may still contain usable settings.'));
+  content.append(make('p', 'sdsp-help', 'This list shows the loaded file’s initial voice settings. Play SPC above runs the song separately; the list does not follow its playback position or restore the current envelope phase. For BRR voices, C4 is a declared audition reference at the captured PITCH, not the original musical root. Noise uses the shared clock instead of musical pitch. Activity is only an ENVX / OUTX snapshot heuristic; inactive voices may still contain usable settings.'));
   root.append(section);
 
   function setStatus(message, error = false) {
@@ -162,7 +163,7 @@ export function createSpcBrowser({root, onOpen, onSelect, onError = () => {}}) {
     op.fileName = text(file.name);
     setStatus('Reading ' + text(file.name) + '… Current instrument kept.');
     try {
-      const next = await onOpen(file, {signal:op.controller.signal});
+      const next = await onOpen(file, {signal:op.controller.signal,onCommit(){if(!current(op))throw abortError();op.committing=true;refresh();}});
       if (!current(op)) return;
       if (!next || !Array.isArray(next.candidates)) throw new TypeError('SPC import returned no voice candidates');
       batch = next; selectedId = null; selectedMode = null; showBatch();
@@ -237,6 +238,8 @@ export function createSpcBrowser({root, onOpen, onSelect, onError = () => {}}) {
   });
   refresh();
   return {
+    showSource(next){if(disposed)return;cancelOperation();batch=next;selectedId=null;selectedMode=null;showBatch();setStatus(availabilityStatus());},
+    liveRoot,getImportOptions:()=>({includeEcho:includeEcho.checked,includePmon:includePmon.checked}),
     clearSelection() {if (!disposed) {selectedId = null; selectedMode = null; refresh();}},
     dispose() {
       if (disposed) return;

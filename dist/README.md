@@ -34,6 +34,9 @@ Draw on the same canvas; releasing the stroke applies it, and an interrupted
 stroke is discarded. The source is converted to a looping BRR sample in
 software. The declared cycle frequency is 32,000 / 128 Hz at hardware
 `PITCH=4096`; keyboard notes use the hardware PITCH register to transpose it.
+Drawing or choosing a shape updates the existing BRR RAM while keeping held
+notes, release envelopes, playback positions and Echo history. The decoder
+uses the edited bytes at its next block fetch; it does not restart the note.
 
 When a BRR sample is selected, this canvas displays its decoded waveform as a
 preview. Use Wave to author a cycle. With PMON enabled, choose **Carrier** or
@@ -43,9 +46,9 @@ editable 128-point Wave or a BRR sample. A modulator BRR appears as a read-only
 decoded preview with its own Root / base PITCH and loop controls. **Load audio…**
 and **Load BRR…** replace the selected Carrier / Modulator target; the file action
 and conversion hint name that target. Switching targets alone changes no sound.
-Sample replacement, loop edits, active modulator-source / wave edits and Echo / PMON
+Sample replacement, loop edits, active modulator-source changes and Echo / PMON
 On / Off rebuild the bank, stopping held notes and old Echo tails. Repeated
-edits reuse sample RAM. Volume, envelope, Root / base PITCH, Pitch wheels and
+drawn Wave edits reuse their existing RAM without rebuilding the bank. Volume, envelope, Root / base PITCH, Pitch wheels and
 Echo parameters other than Enable apply to held voices.
 
 BRR compression is lossy. The S-DSP core then performs Gaussian interpolation,
@@ -101,10 +104,55 @@ audio and BRR loads target whichever sample is selected. An empty BRR modulator
 is a valid draft, but keys and JavaScript audition require a loaded sample.
 BRR encoding and keyboard pair allocation
 are software authoring tools; PMON and both envelopes run in the actual S-DSP.
-Changing the active wave or PMON On / Off rebuilds the bank and stops held
+Editing only the Carrier / Modulator Wave keeps both voices and Echo running.
+Changing PMON On / Off or its sample source rebuilds the bank and stops held
 notes and Echo tails. Ratio, Envelope / GAIN and Pitch edits retain their owners.
 Noise temporarily pauses PMON because Noise output is not tuned by sample PITCH;
 returning to Wave / BRR restores the remembered setting.
+
+## Menu and SPC song playback
+
+The **Menu** button in the heading groups preset, SPC, audio / BRR, project and
+file import / export. **Files** still opens the project browser. Desktop builds
+reuse this same menu: their Audio output, Reload and Pin controls mount once,
+without a second menu or second speaker connection.
+
+Choose **Menu → Import → SPC…**, or **Sounds from SPC →
+Load SPC…**. A valid load prepares both the original snapshot's sound candidates
+and the SPC player. Playable initial voices are added to `/presets`, using the current Echo / PMON import options; the original file is kept under `/spc`. Existing files are kept with numbered collision suffixes. The complete batch is validated against the project size limit before it is added. It keeps the Auto instrument and remains silent until you
+press **Play SPC**.
+
+The song player executes the SPC700 driver and S-DSP from the file's RAM / DSP
+snapshot. **Pause** keeps the position; **Play SPC** resumes it; **Stop** returns
+to the original snapshot. The position bar and time display follow playback.
+Dragging previews the destination; releasing commits one seek. Arrow keys move
+1 second (Shift: 10 seconds), Page Up / Down move 10 seconds, and Home / End
+select the bar endpoints. Key repeats preview until keyup; leaving the control
+commits, while Escape or pointer cancellation discards the draft. Stop and source
+replacement discard unfinished drafts. An unknown duration displays **—** and
+allows seeking up to 3,600 seconds; tagged files use their tagged span, extending
+if playback continues beyond it, within the same one-hour seek limit.
+Seek rebuilds the machine from the file and runs forward; long seeks can take
+time, and Stop cancels them. The bar shows the pending destination, and a newer
+seek can replace an unfinished seek. Seeking from Pause stays paused; a seek
+while playing resumes playback at the destination. The eight CH
+buttons mute only the song's physical voices. A duration marked **(tag)** comes
+from file metadata and is informational: it does not force a stop or fade.
+
+Song playback uses a separate SPC700 / S-DSP machine from the authored instrument,
+through the existing AudioContext and common Master / monitor / desktop output.
+You can play the edited sound with Keyboard or Code over the song. Code Stop
+releases Code notes; **Stop all sound** also stops the song. Desktop output
+changes pause the song before handing over the common Master route. The song
+is independent of Code BPM, Pitch wheels and the instrument's software FX.
+
+**Playback channels** in **Sounds from SPC** follows all eight physical channels about five times per second. It shows sampled ENVX / OUTX activity, signed L / R volumes, PITCH, SRCN and Noise / PMON / Echo flags. Muted channels remain observable; activity is not a complete note-on history or an output loudness meter. Pause freezes inspection; Seek refreshes it at the new position; Stop shows the initial state.
+
+Choose a channel's **Load sound** to take a fresh atomic RAM / DSP snapshot and adopt its current instrument. The **Import Echo / FIR settings** and **Import PMON pairs** options below apply to this action as well. The capture time is displayed after import. Unsupported samples or pairs report a reason and keep the edited instrument. Display updates never adopt a sound automatically. A newer edit, source replacement, Stop or Seek supersedes an unfinished capture.
+
+The sound-candidate list below shows the file's initial snapshot. It does not follow
+the current playback position. Choosing a candidate edits the instrument for
+keyboard / Code audition, without rewriting the song. The selected playback position is session-only. Original SPC files saved in `/spc` can be selected again after reload. New imports add presets while keeping earlier files and Code. No recording or automatic event export is included.
 
 ## Sounds from SPC
 
@@ -275,6 +323,10 @@ a candidate; they remain editable in this panel.
 
 ## Hardware ADSR and GAIN
 
+The Envelope panel includes one ADSR graph for Auto and the selected physical CH. Drag **A** horizontally to adjust Attack. Drag **D / L** horizontally for Decay and vertically for Sustain level. Drag **S** horizontally for Sustain rate. The existing numeric fields and graph update together; keyboard arrows change codes, D / L uses Up / Down for level, and Home / End select a code endpoint. Release is fixed by hardware and has no editing handle.
+
+This is a schematic shape guide with rate-code spacing, not a millisecond scale or a live envelope meter. Sustain rate 0 is shown as a hold. In GAIN mode the dormant ADSR guide remains visible with disabled handles; GAIN stays editable in the existing fields. In CH mode graph edits use the same current-register path and transport / source fences as the numeric controls; Auto and saved Files are retained.
+
 These controls set S-DSP register codes, not a software envelope in seconds:
 
 | Mode | Controls |
@@ -329,14 +381,114 @@ shared Echo / FIR.
 Drawing, audio conversion, sample management and keyboard allocation are
 software authoring tools.
 
-SPC pair import supports isolated adjacent BRR pairs. No SPC700 driver or song
-playback is included in this Synth.
+SPC pair import supports isolated adjacent BRR pairs. Use the separate SPC song
+player above to execute the SPC700 driver; importing an instrument itself stays passive.
+
+## Files and Code performance
+
+Filesで音色・コード・素材をまとめて保存し、Codeで現在の音色を演奏できます。
+BPM連動の演奏例、Code画面での鍵盤入力、自動保存・復旧、Cassette ZIPに対応します。
+
+**Files** opens a local project containing JavaScript, editable text, binary assets
+and named `.sdsp.json` sounds. **Save sound** adds the complete current preset,
+including carrier / modulator BRR, Noise, PMON and Echo, without replacing an
+existing saved sound. Select a sound JSON to apply it; editing its JSON alone
+keeps the current instrument until you select it again. Existing portable v1–v5
+presets still load through **Load preset…**.
+
+After importing an SPC voice, choose **Save sound as…** beside **Saved sounds**
+in the instrument toolbar, or **Save current sound as…** below the live capture
+result. Enter a sound name to create `/presets/<name>.sdsp.json`. The dialog
+keeps a copy of the instrument from when it opened; Cancel writes no sound.
+The saved copy gets the entered name without renaming or applying the current
+instrument. Unsafe filename characters are replaced and duplicate names receive
+numbered suffixes, so earlier captures remain intact. **Files → Save sound**
+retains its existing quick-save behavior using the current instrument name.
+
+Use **Saved sounds** to load a saved preset directly without entering Code.
+Changing the instrument clears that selection and does not rewrite the saved
+file. All samples are embedded in the preset, including both BRR samples for
+PMON; the original SPC is not required after capture. Multiple saved sounds are
+retained in local Files across reloads and included in the Project / Cassette ZIP.
+This uses the existing `.sdsp.json` format and local store in both Web and Tauri;
+it adds no separate native menu, storage backend or audio route.
+
+Sound edits, Files and Code save locally. Reopening restores the project without
+opening audio or running JavaScript. **Menu → Export → Cassette · ZIP** / **Menu → Import → Cassette…** use
+a Cassette ZIP with the sound, Code and binary files together. Export the project
+to keep a portable copy; browser storage failures are shown beside Files. A failed
+initial restore keeps the unread project and does not overwrite it with defaults.
+The local project uses its own S-DSP storage namespace. Saved portable presets
+and projects from other Synth apps are not changed.
+
+Choose **Code**, select `/index.js`, and press **Run**. **Apply** retains `context`
+and replaces named loops while playing; **Stop** releases Code-owned notes and
+keeps the edited instrument. Switching Keyboard / Code changes the view while
+Code continues. Computer keys play in either view outside text editors, inputs,
+Files and dialogs; key-up and window blur release manual keys. **Stop all sound**
+also clears held notes and the hardware Echo tail.
+
+```js
+const snes = await useSoundChip("snes");
+setBpm(120);
+liveLoop("melody", async () => {
+  await snes.noteOn(CH1, choose(scale("C4", "minorPentatonic", 1)));
+  await beat(0.5);
+  await snes.noteOff(CH1);
+  await beat(0.25);
+});
+```
+
+This Synth performance handle shares the existing S-DSP, sample bank, current
+sound, keyboard allocator and Master. Its note methods are asynchronous; await
+them before starting a musical wait. `beat()` follows `setBpm()`, while `sleep()`
+measures seconds. Performance lanes **0–7** identify Code notes; **CH1–CH6** are
+aliases for 0–5, and numeric 6 / 7 address the last two lanes. They are not fixed
+DSP voice numbers. Notes use the same round robin / stealing rules as the
+keyboard: eight ordinary notes, or four PMON pairs, shared with manual keys.
+Noise uses its shared clock and ignores the requested musical pitch.
+
+The handle exposes `noteOn(lane, note)`, `noteOff(lane)`, `getState()`,
+`allNotesOff()` and `dispose()`. The last two release only that Code session's
+notes. Note names and integer MIDI 0–127 are supported. The editor sets the
+Wave / BRR bank, envelopes, Noise, PMON and Echo; edits apply through the existing
+live-update rules. This app-specific performance handle differs from Playground's
+raw `SnesSynth` channel / RAM API. **Copy JavaScript** retains the existing
+Playground setup-code export. Software `liveFx()` runs after the S-DSP; hardware
+Echo / FIR remains part of the S-DSP.
+
+Code uses the shared Synth editor, with text editing available if Monaco cannot
+load. In Monaco, Go to Definition followed by View implementation opens the
+actual S-DSP performance client for note and state methods. Local modules can be imported from Files and `file()` reads project assets.
+Maximize Code to edit beside Files. JavaScript is limited to 2 MiB, and the project
+reserves room for the full sound within the 16 MiB Cassette limit. Event Rec
+is intentionally excluded from this Synth. SPC song playback is provided by the separate transport above.
+
+## Code follow-up verification
+
+The live-edit browser check covers Code plus manual keys under Wave, supplied
+BRR, Noise, PMON and BRR PMON, each with Echo. It checks held-note identities,
+finite PCM after control edits, safe voice stealing and exact preservation of
+both BRR payloads in Cassette projects. The real Monaco check covers its actual
+language worker, SNES-only completion, mixed JSON / JavaScript editing, source
+navigation, reload recovery and 1240 / 390 px layouts. All speaker output is
+muted; these checks do not replace human listening.
+
+```sh
+node scripts/check_snes_synth_code_browser.cjs
+node scripts/check_snes_synth_code_monaco_browser.cjs
+```
+
+Both checkers accept `--root EXTRACTED_ZIP --entry /index.html --out RECEIPT.json`.
+The Monaco checker allows only local assets and its pinned Monaco CDN; unavailable
+CDN access is reported separately from an application failure.
 
 ## Source and verification
 
 - [preset.js](https://github.com/kyorohiro/hello_ymfm_wasm/blob/main/docs/synth-snes/preset.js), [instrument.js](https://github.com/kyorohiro/hello_ymfm_wasm/blob/main/docs/synth-snes/instrument.js): validation and owned hardware voices.
 - [sample.js](https://github.com/kyorohiro/hello_ymfm_wasm/blob/main/docs/synth-snes/sample.js), [audio_import.js](https://github.com/kyorohiro/hello_ymfm_wasm/blob/main/docs/synth-snes/audio_import.js): bounded sample preparation.
-- [spc_import.js](https://github.com/kyorohiro/hello_ymfm_wasm/blob/main/docs/synth-snes/spc_import.js), [spc_browser.js](https://github.com/kyorohiro/hello_ymfm_wasm/blob/main/docs/synth-snes/spc_browser.js): passive SPC snapshot extraction and explicit voice selection.
+- [spc_import.js](https://github.com/kyorohiro/hello_ymfm_wasm/blob/main/docs/synth-snes/spc_import.js), [spc_browser.js](https://github.com/kyorohiro/hello_ymfm_wasm/blob/main/docs/synth-snes/spc_browser.js): passive file / live RAM-DSP snapshot extraction and explicit voice selection.
+- [spc_live.js](https://github.com/kyorohiro/hello_ymfm_wasm/blob/main/docs/synth-snes/spc_live.js): sampled playback channel display and explicit current-sound capture.
 - [editor.js](https://github.com/kyorohiro/hello_ymfm_wasm/blob/main/docs/synth-snes/editor.js), [synth.js](https://github.com/kyorohiro/hello_ymfm_wasm/blob/main/docs/synth-snes/synth.js): UI and performance controls.
 - [audio.js](https://github.com/kyorohiro/hello_ymfm_wasm/blob/main/docs/synth-snes/audio.js), [processor.js](https://github.com/kyorohiro/hello_ymfm_wasm/blob/main/docs/synth-snes/processor.js): single-context AudioWorklet host.
 - [Implementation TODO](https://github.com/kyorohiro/hello_ymfm_wasm/blob/main/docs/issues/todo_snes_synth_01.md).
@@ -367,7 +519,7 @@ GAINの減衰モードは初期Envelopeを自動で増やさず、新しい発�
 ADSR／GAINを取り込み、BRRは保存時点のPITCHをC4の再生基準として宣言します。
 元の音階を推測したものではないため、必要ならRoot noteを調整してください。
 一覧は折りたためます。不正ファイルやCancel、古い読み込み結果では今の音色を保ちます。
-SPCの曲再生やdriverの時間変化は再現せず、BRRのPITCH0・不正Loop等は理由を
+音色抽出はdriverの時間変化を復元しません。曲は上部のSPCプレーヤーで再生できます。BRRのPITCH0・不正Loop等は理由を
 表示して選択不可にします。Noise候補は共有clock・左右音量・ADSR／GAINを取り込み、
 PITCH0や不正なSRCN／BRRでも選択できます。Noiseの内部LFSR状態は復元せず、
 本Synth側のgeneratorで試奏します。PMON／Echoを省略する候補には説明を表示します。
@@ -441,6 +593,30 @@ JavaScript出力ではBRR読込前に `await snes.setEcho(...)` を実行し、
 既存の `snes.writeDsp(...)` でNoiseのNON／FLGやPMON隣接routingを設定します。
 既存APIだけを使い、共有runtime／WASM／npmの更新は不要です。SPCから取り込んだ
 pairやEcho設定も、このpanelで編集・保存できます。
+
+## Software Looper
+
+In Keyboard, choose **Looper Start**, then **Record** (or Space) and play. Press **Stop recording** / Space to repeat the take. The first take defines the period; later takes add independent stereo PCM layers at the current loop position. Each layer retains the recorded Wave / BRR / Noise sound, PMON, live Pitch and Echo edits. A 0.25 second release / Echo tail is captured and wrapped into the next cycle; longer tails are truncated. This is software audio layering beyond one S-DSP's eight voices.
+
+The capture tap reads only the live instrument before Master. SPC songs and previous layers are excluded, so overdubbing does not re-record them. All layers play through the existing AudioContext and common Master / monitor / Tauri output route. Changing Master does not alter the recorded audio. The tap itself outputs silence and never creates another speaker connection.
+
+**Undo** cancels a take in progress or removes the last layer. **Clear** removes all layers. Looper Stop / Start, Stop all sound and native output switching retain completed layers. Output switching cancels an unfinished take and stops loop playback before changing the final route. Entering Code stops the Looper and retains completed layers; loading a project clears it. Looper is unavailable while Code runs. Space inside text fields, buttons, menus and editors keeps its normal meaning.
+
+Limits: 16 layers, a 120 second period / take, 128 MiB of retained stereo audio, and a minimum 0.05 second first take. The remaining memory budget can shorten recording; recording stops automatically at its limit. Layers live only in this session and are not included in preset / Cassette exports or restored after reload. No Event Rec or event JSON import / export is added.
+
+## S-DSP / Mixer and Auto / CH1–CH8
+
+The main view follows the other Synth apps: **S-DSP** and **Mixer** tabs, then **Auto** / **CH1–CH8**. Auto owns the authored instrument used by Files and Code. A numbered CH displays that physical SPC voice from the initial snapshot or sampled playback state. Live follows playback; turning it off freezes the view, while Pause / Seek refresh the frozen destination. Auto's preset is never replaced merely by selecting or following a CH. BRR voices with PITCH 0 have a warm-colored tab and a **· 0** marker, with an accessible explanation; they remain selectable. Hardware Noise is excluded because PITCH does not set its speed. Tab indicators follow the displayed snapshot, including Live off.
+
+Auto and CH use the same **Voice level**, **Envelope**, sample and tuning controls, including the same stepper buttons, keyboard shortcuts and dragging gestures. Auto edits the authored instrument; a selected CH routes supported controls to that physical SPC voice. In CH mode the existing PITCH field edits the raw register value (0–16383); in Auto it retains the authored BRR reference tuning. There is no separate SPC channel-controls panel. Sample replacement / conversion, source changes and shared Noise / Echo / PMON edits stay in place but are unavailable on a physical CH; **Copy to Auto** enables authored editing and saving.
+
+CH edits read current DSP bytes, preserving packed neighboring fields, CPU RAM, playback position, other voices and envelope phase. Later driver writes can overwrite them. Live off freezes automatic display updates; explicit edits refresh the result. Stop and Seek reload the original source. Source / CH / transport changes cancel pending edits and discard local drafts. Auto and saved Files remain unchanged. The PCM / BRR waveform, sample size and loop information stay visible even when no playable preset can be recovered. Missing samples are reported explicitly, without displaying Auto's sample or inventing a replacement PITCH.
+
+Pause to audition a playable CH snapshot on the existing authored S-DSP. Audition uses an independent bank and does not inject notes into the original SPC machine. **Copy to Auto** adopts the displayed voice / optional PMON pair with the existing import options; Code Run returns to Auto. ENVX / OUTX are sampled hints, and original envelope / decoder histories are not reconstructed.
+
+Mixer provides one S-DSP source gain (0–380%) and eight physical channel On / Off switches shared by the authored instrument, Code and SPC. Muting does not inject Key Off or stop envelopes; a muted PMON modulator can still modulate its carrier. Gain is after the Code output chain and before the final Master. Context recreation, source replacement and bank replacement reapply the session's mixer settings. No extra speaker route or Tauri menu is created. Mixer values remain session controls, outside instrument presets.
+
+SPC imports automatically add available initial voice presets and the original SPC to Files, preserving the current Auto sound. Invalid or oversized batches leave prior Files intact. Unsupported voices are skipped. Reopen a stored SPC through the source selector / Files without extracting another batch. Portable JSON preset imports also add a copy to `/presets` before applying it to Auto. Cassette ZIP includes the original SPC and extracted presets. Importing a project or choosing a saved source never starts audio or Code automatically.
 
 ## Included sources
 

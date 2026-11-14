@@ -4,18 +4,45 @@
   "sdk": {
     "schemaVersion": 1,
     "name": "tetorica-soundchip-native",
-    "version": "0.1.7",
+    "version": "0.1.8-huc-spc-edit",
     "sourceCommit": "95cf71a857b15d0ea932ebf97d5fde80b5e80a95",
-    "archiveName": "tetorica-soundchip-native-0.1.7-sources.zip",
-    "archiveSha256": "5f7cdf35bc85a7453eef42576259f615411d4fdcdd47b8778242eb2a2d7f2b9c",
-    "manifestSha256": "b5e4c75230c32c66aa2ba4248830af7e7587a5977529973c346063afd2d2f365",
-    "fileCount": 476,
-    "unpublished": true
+    "archiveName": "tetorica-soundchip-native-0.1.8-huc-spc-edit-sources.zip",
+    "archiveSha256": "a0f1acbc7e672810f12d6121c474f6374f4488dbde55a2b297e55beafd17807e",
+    "manifestSha256": "a325d296fe7f34b1ec94ee05be5d6dfc3439af13a71fbaaa839c8a28ca5011bd",
+    "fileCount": 481,
+    "unpublished": true,
+    "localCandidate": {
+      "baseCommit": "95cf71a857b15d0ea932ebf97d5fde80b5e80a95",
+      "changedPaths": [
+        "CHANGELOG.md",
+        "CMakeLists.txt",
+        "catalog/chips.json",
+        "catalog/native_inventory.json",
+        "catalog/source_inventory.json",
+        "docs/huc6280-local-candidate.json",
+        "docs/huc6280-state.md",
+        "native/CMakeLists.txt",
+        "native/include/tetorica/huc6280.hpp",
+        "native/include/tetorica/huc6280_state.h",
+        "native/tests/huc6280_state_fixture.cpp",
+        "scripts/build_huc6280_wasm.sh",
+        "scripts/build_spc_wasm.sh",
+        "sdk.json",
+        "tests/huc6280_state_wasm_smoke.mjs",
+        "vendor/mame-huc6280/README.md",
+        "vendor/mame-huc6280/huc6280.cpp",
+        "vendor/mame-huc6280/huc6280.h",
+        "vendor/snes-spc/README.md",
+        "vendor/snes-spc/snes_spc/SNES_SPC.h",
+        "wasm/huc6280_wasm.cpp",
+        "wasm/spc_wasm.cpp"
+      ]
+    }
   },
   "build": {
     "id": "spc",
     "format": "emscripten-es-module",
-    "sourceFingerprint": "b1c0b9557a643d25239ebf38785c3e3dac12b9de4207ccea5d4654c3f39c12e5",
+    "sourceFingerprint": "4deb089f891f4aa82a47b62ea447143322344679018cdb2fcf60d466a7267f45",
     "sourceFiles": [
       {
         "path": "scripts/build-wasm.sh",
@@ -24,8 +51,8 @@
       },
       {
         "path": "scripts/build_spc_wasm.sh",
-        "sha256": "3eed01347f67aaae3690db3050fdfcff104fe209f621826870c651e732b57577",
-        "size": 1480
+        "sha256": "a30a1b1a4938f34ebc112f8c762d557a3e46dd6575a7968e30b617896452ed0b",
+        "size": 1499
       },
       {
         "path": "scripts/record_wasm_build.mjs",
@@ -39,8 +66,8 @@
       },
       {
         "path": "vendor/snes-spc/snes_spc/SNES_SPC.h",
-        "sha256": "3ebf24542de1405b054fc7f044516aa25eabdd530a66daf1f91468a1e52a00ae",
-        "size": 9033
+        "sha256": "63e8b9a88c31530190a55786a15b4d02a103892f9b6e128de4fb4e50baa3f96f",
+        "size": 9490
       },
       {
         "path": "vendor/snes-spc/snes_spc/SNES_SPC_misc.cpp",
@@ -119,20 +146,20 @@
       },
       {
         "path": "wasm/spc_wasm.cpp",
-        "sha256": "2c88efc7f10d0b4cd1124163f0a99caf0e1d8cac3ba1767de1134c30d62e8d77",
-        "size": 15355
+        "sha256": "1575ff7e23d6486385612d2d22b026fa5cca7e7a39e7dbb9db37f5fa9c35fb19",
+        "size": 15749
       }
     ],
     "outputs": [
       {
         "path": "spc_wasm.js",
-        "sha256": "13106eb82513dac0b3d3e4983b9cb1843eedcdf698ec385a5a91cf9d1d27b699",
-        "size": 41458
+        "sha256": "279706319f2f477beee134442a4b1fb823ff24f843ecfcc22f9d58d4e95fdd03",
+        "size": 41763
       },
       {
         "path": "spc_wasm.wasm",
-        "sha256": "9a8f6facab15990346cc712e8b14bf316c2b7fcc1260f9ccbea49efea39df408",
-        "size": 63074
+        "sha256": "bd5d4e4d4fcc460a344a09f51b4048b8786ede0a554352540bec37fd4715d6f5",
+        "size": 63396
       }
     ],
     "compiler": {
@@ -148,9 +175,89 @@
       "sha256": "904aad992573851febeef6258c9fab9ccebbad1cd811fd93cdb76948339ad2d7"
     },
     {
+      "path": "sources/code-effects/LICENSE",
+      "bytes": 1519,
+      "sha256": "2d2e9213c170a9866c616fa85b6da993a6724e10befc61f468ed9bfb84c4691c"
+    },
+    {
+      "path": "sources/code-effects/README.md",
+      "bytes": 557,
+      "sha256": "f332283b46681ecdfc31b63fdf1ff0db05de8431026b0cccdda51544be7c8a07"
+    },
+    {
+      "path": "sources/code-effects/scripts/build_native_audio_effect.sh",
+      "bytes": 2183,
+      "sha256": "195f57fa21ea429411030232b753992556214f45c62588aa2ace7bceb231abe1"
+    },
+    {
+      "path": "sources/code-effects/tetorica_src/native/audio_effect/compressor.c",
+      "bytes": 2314,
+      "sha256": "6e3e2c7588f0be7f35378b6698340e7aea21cecce1cd6be7cb6ebe046b670784"
+    },
+    {
+      "path": "sources/code-effects/tetorica_src/native/audio_effect/compressor.h",
+      "bytes": 289,
+      "sha256": "981f36abf7fbf33be3de482a2200b539cbd6d562011018a9660976ae69c96c4c"
+    },
+    {
+      "path": "sources/code-effects/tetorica_src/native/audio_effect/eq.c",
+      "bytes": 2546,
+      "sha256": "0ade21edfddf0aab6d3c6d145e9464ba1a03cc9e78f85a12ee0fa95e7e998d0f"
+    },
+    {
+      "path": "sources/code-effects/tetorica_src/native/audio_effect/extra_fx.c",
+      "bytes": 7536,
+      "sha256": "1b6cad91d18f3080bb921f39398312830b72b0775b47ebf34f80ffe2966577b3"
+    },
+    {
+      "path": "sources/code-effects/tetorica_src/native/audio_effect/extra_fx.h",
+      "bytes": 407,
+      "sha256": "1eb9d97ff152403f382878377e13710591d5cb8fb2297e1457e18220bf19b7a3"
+    },
+    {
+      "path": "sources/code-effects/tetorica_src/native/audio_effect/gain.c",
+      "bytes": 2081,
+      "sha256": "1a769210e885c1f3a0c47dba745bcfa395eb5c6d9306ddcc2d5c101a88fde6a3"
+    },
+    {
+      "path": "sources/code-effects/tetorica_src/native/audio_effect/graph.c",
+      "bytes": 3847,
+      "sha256": "8637dff231d3960961f043b1f2738d79264a6f5d8abe6de3f3029d15e7cd9f61"
+    },
+    {
+      "path": "sources/code-effects/tetorica_src/native/audio_effect/noise.c",
+      "bytes": 4153,
+      "sha256": "b32e4f637782c4a9a35cfaf0c1134d68fa9977db75e4033e0d4fbc0738c11e71"
+    },
+    {
+      "path": "sources/code-effects/tetorica_src/native/audio_effect/noise_gate.c",
+      "bytes": 2821,
+      "sha256": "6fc3d87e6d0f0b418ab405c7f24163958e54c82e92b6ae58c524c66d86b24325"
+    },
+    {
+      "path": "sources/code-effects/tetorica_src/native/audio_effect/noise_gate.h",
+      "bytes": 298,
+      "sha256": "5258f6bed8e8a8e38b5a811008e6611712af75cb0887a63f98a34589447046e6"
+    },
+    {
+      "path": "sources/code-effects/tetorica_src/native/audio_effect/reverb.c",
+      "bytes": 2850,
+      "sha256": "983469a02979c04189b7e0ca6c3b1a3360f8ab8bb2cf34cfe1b3154a0b587d19"
+    },
+    {
+      "path": "sources/code-effects/tetorica_src/native/audio_effect/reverb.h",
+      "bytes": 212,
+      "sha256": "a1f465433a8e70fcb2c8ad8b8634c88fb44918051f68f3714b63810ae7c87c60"
+    },
+    {
+      "path": "sources/code-effects/tetorica_src/native/audio_effect/sample.c",
+      "bytes": 5119,
+      "sha256": "9c6971c6ce67c97b639e036eb76edac7f3215544d7b978c6ce646a53a93fdb32"
+    },
+    {
       "path": "sources/scripts/build_spc_wasm.sh",
-      "bytes": 1505,
-      "sha256": "3ecc18550f6af95ce8c57c96879da6785727e903e40428f1b6e8ce9fea4e720b"
+      "bytes": 1524,
+      "sha256": "a9ac87d07e95dc9277416620074dd6e1b085308e948810692d1669c9d3957903"
     },
     {
       "path": "sources/third_party/snes-spc/LICENSE",
@@ -159,8 +266,8 @@
     },
     {
       "path": "sources/third_party/snes-spc/README.md",
-      "bytes": 3444,
-      "sha256": "0a4ef415f103b996772d321ba2ff28614a27a9c83cfe4afd437a779e58ab0775"
+      "bytes": 3643,
+      "sha256": "904c8a52ba8ee7b1bd3da4db68fcd9ee34c4aff7414e6ca449ef4fdbdf58b004"
     },
     {
       "path": "sources/third_party/snes-spc/README.upstream.md",
@@ -194,8 +301,8 @@
     },
     {
       "path": "sources/third_party/snes-spc/snes_spc/SNES_SPC.h",
-      "bytes": 9033,
-      "sha256": "3ebf24542de1405b054fc7f044516aa25eabdd530a66daf1f91468a1e52a00ae"
+      "bytes": 9490,
+      "sha256": "63e8b9a88c31530190a55786a15b4d02a103892f9b6e128de4fb4e50baa3f96f"
     },
     {
       "path": "sources/third_party/snes-spc/snes_spc/SNES_SPC_misc.cpp",
@@ -274,18 +381,18 @@
     },
     {
       "path": "sources/wasm/spc_wasm.cpp",
-      "bytes": 15355,
-      "sha256": "2c88efc7f10d0b4cd1124163f0a99caf0e1d8cac3ba1767de1134c30d62e8d77"
+      "bytes": 15749,
+      "sha256": "1575ff7e23d6486385612d2d22b026fa5cca7e7a39e7dbb9db37f5fa9c35fb19"
     }
   ],
   "generated": {
     "spc_wasm.js": {
-      "bytes": 41458,
-      "sha256": "13106eb82513dac0b3d3e4983b9cb1843eedcdf698ec385a5a91cf9d1d27b699"
+      "bytes": 41763,
+      "sha256": "279706319f2f477beee134442a4b1fb823ff24f843ecfcc22f9d58d4e95fdd03"
     },
     "spc_wasm.wasm": {
-      "bytes": 63074,
-      "sha256": "9a8f6facab15990346cc712e8b14bf316c2b7fcc1260f9ccbea49efea39df408"
+      "bytes": 63396,
+      "sha256": "bd5d4e4d4fcc460a344a09f51b4048b8786ede0a554352540bec37fd4715d6f5"
     }
   },
   "recipeLayout": "The standalone recipe changes its five vendor/snes-spc paths to third_party/snes-spc. Shipped-byte hashes describe this relocated recipe; build describes the original SDK compilation."

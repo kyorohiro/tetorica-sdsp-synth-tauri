@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Tetorica S-DSP Synth — import SPC voices and PMON pairs, explore BRR, hardware Noise, Pitch Modulation, ADSR / GAIN and shared Echo / FIR.">
+  <meta name="description" content="Tetorica S-DSP Synth — play SPC songs, import voices and PMON pairs, and edit BRR, Noise, ADSR / GAIN and Echo / FIR.">
   <meta name="theme-color" content="#dfe2e2">
   <meta name="application-name" content="Tetorica S-DSP Synth">
   <meta name="apple-mobile-web-app-title" content="Tetorica S-DSP Synth">
   <title>Tetorica S-DSP Synth</title>
   <link rel="icon" type="image/webp" href="../tetorica_sdsp_synth.webp">
   <link rel="apple-touch-icon" href="../tetorica_sdsp_synth.webp">
-  <link rel="stylesheet" href="./synth.css">
+  <link rel="stylesheet" href="./synth.css?v=adsr-graph-1">
 </head>
 <body>
   <main>
@@ -25,12 +25,43 @@
     <article class="synth-shell" aria-labelledby="synthTitle">
       <header class="synth-heading">
         <div class="title-row">
+          <div id="synthDesktopTools" data-web-menu="true">
+            <details id="synthMenu" class="synth-menu">
+              <summary id="synthMenuButton" class="synth-icon-button" aria-label="Menu" title="Menu" aria-expanded="false" aria-controls="synthMenuPanel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></summary>
+              <div id="synthMenuPanel" class="synth-menu-panel">
+                <section class="synth-menu-section synth-menu-actions synth-menu-primary-import"><h2>Import</h2>
+                  <div id="snesMenuProjectImport"></div>
+                  <button id="synthMenuSpc" type="button" data-close-synth-menu>SPC…</button>
+                  <button id="synthMenuBrrImport" title="Import BRR into the selected Carrier / Modulator sample" type="button" data-close-synth-menu>BRR…</button>
+                </section>
+                <section class="synth-menu-section synth-menu-actions"><h2>Export</h2>
+                  <div id="snesMenuProjectExport"></div>
+                </section>
+                <section class="synth-menu-section synth-menu-secondary" aria-label="Other file actions">
+                  <div class="synth-menu-actions"><h3>Import</h3>
+                    <button id="loadPreset" type="button" data-close-synth-menu>Instrument JSON…</button>
+                    <input id="presetFileInput" class="file-input" type="file" accept=".json,application/json" aria-label="Choose a S-DSP instrument preset">
+                    <button id="synthMenuAudioImport" title="Import audio into the selected Carrier / Modulator sample" type="button" data-close-synth-menu>Audio sample…</button>
+                    <div id="snesMenuFilesImport"></div>
+                  </div>
+                  <div class="synth-menu-actions"><h3>Export</h3>
+                    <button id="savePreset" type="button" data-close-synth-menu>Instrument JSON</button>
+                    <div id="snesMenuFileExport"></div>
+                  </div>
+                </section>
+                <section id="synthMenuAudio" class="synth-menu-section"><p>Audio output · System default (Web Audio)</p></section>
+                <section class="synth-menu-section synth-menu-actions synth-menu-utility"><button type="button" data-reset-offline-cache data-close-synth-menu>Reload</button></section>
+              </div>
+            </details>
+            <button id="synthPinButton" class="synth-icon-button" type="button" aria-label="Pin window on top" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path class="pin-head" d="M9 3h6v5l3 5v2H6v-2l3-5z"/><path d="M12 15v7"/></svg></button>
+          </div>
+
           <div class="product-identity">
             <img class="product-icon" src="../tetorica_sdsp_synth.webp" width="112" height="112" alt="" decoding="async">
             <div class="product-copy">
               <p class="eyebrow">BRR · NOISE · ECHO / FIR · PMON</p>
               <h1 id="synthTitle">Tetorica <span class="product-name">S-DSP Synth</span></h1>
-              <p class="description">SNES · 8-voice sample sound · Draw a wave. Take the code.</p>
+              <p class="description">SNES · 8-voice sample sound · Draw a wave. Play with code.</p>
             </div>
           </div>
           <span class="engine-badge">S-DSP <span>8 HARDWARE VOICES</span></span>
@@ -38,6 +69,7 @@
         <div class="audio-toolbar">
           <div class="transport-actions">
             <button id="startAudio" class="primary" type="button">Enable audio</button>
+            <button id="snesFilesToggle" type="button" aria-expanded="false" aria-controls="snesFilesPanel">Files</button>
             <button id="stopAudio" type="button">Stop all sound</button>
           </div>
           <label class="master-control" for="masterVolume"><span>Master</span>
@@ -48,6 +80,23 @@
         <p id="audioStatus" class="audio-status" role="status" aria-live="polite">Enable audio, then play the keyboard. Editing does not start audio.</p>
       </header>
 
+      <div id="synthWorkspace" class="snes-code-workspace">
+        <aside id="snesFilesPanel" class="snes-files-panel" aria-label="Project files" hidden></aside>
+        <div class="snes-main">
+      <section id="spcSongPlayer" class="snes-song-player" aria-label="SPC song playback">
+        <div class="snes-song-transport"><label for="snesSongSelect">SPC</label><select id="snesSongSelect" aria-label="SPC in Files"><option value="">Load SPC…</option></select><strong id="spcSongTitle">No SPC loaded</strong><button id="spcSongPlay" type="button" disabled>Play SPC</button><button id="spcSongPause" type="button" disabled>Pause</button><button id="spcSongStop" type="button" disabled>Stop</button></div>
+        <div class="snes-song-seek"><input id="spcSongSeek" type="range" min="0" max="180" step="0.1" value="0" aria-label="SPC playback position in seconds" disabled><output id="spcSongPosition" for="spcSongSeek">0:00 / —</output></div>
+        <p id="spcSongStatus" role="status">Load SPC from Menu or Sounds from SPC. Loading is silent.</p>
+      </section>
+
+      <div class="snes-chip-tabs" role="tablist" aria-label="Sound chip editor"><button id="snesChipTab" type="button" role="tab" aria-selected="true" aria-controls="snesChipPanel">S-DSP</button><button id="snesMixerTab" type="button" role="tab" aria-selected="false" tabindex="-1" aria-controls="snesMixerPanel">Mixer</button></div>
+      <section id="snesMixerPanel" role="tabpanel" aria-labelledby="snesMixerTab" hidden>
+        <h2>Mixer</h2><label>S-DSP Volume <input id="snesChipVolume" type="range" min="0" max="380" step="1" value="100"><output id="snesChipVolumeValue">100%</output></label><button id="snesMixerReset" type="button" disabled>Reset</button>
+        <div id="spcSongChannels" class="snes-song-channels" role="group" aria-label="S-DSP channel On / Off"></div><p>Shared source volume and physical channel On / Off for Keyboard, Code and SPC. Master remains the final output level. Muted modulators still drive PMON.</p>
+      </section>
+      <section id="snesChipPanel" role="tabpanel" aria-labelledby="snesChipTab">
+      <div class="snes-channel-controls"><div id="snesChannelTabs" role="tablist" aria-label="Auto and SPC channels"></div><label><input id="snesChannelLive" type="checkbox" checked>Live</label><button id="snesChannelCopy" type="button" disabled>Copy to Auto</button><p id="snesChannelStatus">Auto · edit and play</p></div>
+      <div id="snesChannelBody" role="tabpanel">
       <section class="spu-monitor sdsp-monitor" aria-label="Instrument display">
         <div class="visual-mode-controls" role="group" aria-label="Audio visualization">
           <button type="button" data-visual-mode="waveform" aria-pressed="true">Waveform</button>
@@ -66,27 +115,37 @@
         </div>
       </section>
 
-      <div id="spcBrowser"></div>
 
       <section class="instrument-workspace sdsp-workspace" aria-label="Instrument editor">
         <div class="section-heading"><h2>Sound source</h2><p id="voiceCapacity" role="status">BRR · 8 hardware voices · round robin</p></div>
-        <div id="voiceEditor"></div>
+        <fieldset id="snesVoiceFields"><div id="voiceEditor"></div></fieldset>
       </section>
 
       <section class="instrument-toolbar" aria-label="Instrument files">
         <label class="instrument-name-control" for="instrumentName">Instrument name <input id="instrumentName" type="text" maxlength="80" value="Sine" autocomplete="off"></label>
+        <div class="snes-sound-library" aria-label="Saved project sounds">
+          <label class="instrument-preset-control" for="snesPresetSelect">Saved sounds <select id="snesPresetSelect" disabled><option value="">No playable presets</option></select></label>
+          <button id="snesSaveSoundAs" type="button" disabled>Save sound as…</button>
+        </div>
         <div class="preset-actions">
-          <button id="loadPreset" type="button">Load preset…</button>
-          <input id="presetFileInput" class="file-input" type="file" accept=".json,application/json" aria-label="Choose a S-DSP instrument preset">
-          <button id="savePreset" type="button">Save preset…</button>
           <button id="copyCode" type="button">Copy JavaScript</button>
           <button id="resetPreset" class="quiet-button" type="button">Reset instrument</button>
         </div>
         <textarea id="codeOutput" readonly spellcheck="false" rows="8" aria-label="Generated instrument JavaScript" hidden></textarea>
       </section>
 
-      <section class="keyboard-section" aria-labelledby="keyboardHeading">
-        <div class="section-heading"><h2 id="keyboardHeading">Keyboard</h2><p id="keyboardSourceHint">Every key plays the selected source. No keyboard split.</p></div>
+      </div></section>
+      <div id="spcBrowser"></div>
+
+      <section id="synthInputSection" class="keyboard-section snes-input-section" aria-labelledby="keyboardHeading" data-input-mode="keyboard">
+        <h2 id="keyboardHeading" class="snes-sr-only">Performance input</h2>
+        <div class="snes-input-tabs" role="tablist" aria-label="Performance input">
+          <button id="synthInputKeyboardTab" type="button" role="tab" aria-selected="true" aria-controls="synthKeyboardPanel">Keyboard</button>
+          <button id="synthInputCodeTab" type="button" role="tab" aria-selected="false" aria-controls="synthCodePanel" tabindex="-1">Code</button>
+          <button id="synthCodeExpandButton" class="snes-code-expand" type="button" aria-label="Maximize Code" aria-pressed="false" hidden><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path id="synthCodeExpandIcon" d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></svg></button>
+        </div>
+        <div id="synthKeyboardPanel" role="tabpanel" aria-labelledby="synthInputKeyboardTab">
+        <p id="keyboardSourceHint">Every key plays the selected source.</p>
         <div class="keyboard-toolbar">
           <div class="octave-control" role="group" aria-label="Keyboard octave">
             <button id="octaveDown" type="button" aria-label="Lower keyboard by one octave">−</button>
@@ -95,6 +154,11 @@
           </div>
           <p id="keyboardHint" class="keyboard-hint">When full, the oldest note is replaced.</p>
         </div>
+        <section class="snes-looper" aria-label="Software Looper">
+          <div class="snes-looper-actions"><button id="looperStartButton" type="button">Looper Start</button><button id="looperRecordButton" type="button" hidden>Record [Space]</button><button id="looperUndoButton" type="button" disabled>Undo</button><button id="looperClearButton" type="button" disabled>Clear</button></div>
+          <p id="looperState" role="status">Looper idle.</p>
+          <details class="snes-inline-help"><summary aria-label="About Looper">?</summary><p>Record the keyboard, then Stop recording or Space to repeat. The first take sets the period; later takes add independent audio layers. Each take keeps live edits, Pitch, PMON and Echo. SPC and existing layers are excluded from recording; Master applies during playback. A 0.25 second release tail wraps into the next cycle. Stop / Start retains layers; Undo removes the latest take, Clear removes all. Up to 16 layers, 120 seconds per take and 128 MiB of retained audio, in this session only. Switching to Code stops the Looper and retains completed layers. Loading a project clears it. Stop all sound and output switching stop it while retaining completed layers.</p></details>
+        </section>
         <div id="keyboardFretboard"></div>
         <div class="performance-keyboard">
           <label class="monitor-pitch keyboard-wheel" for="keyboardPitchBend" title="Software pitch bend, ±2 semitones. Release to return to center.">
@@ -104,14 +168,28 @@
           </label>
           <div id="keyboard" class="keyboard-mount"></div>
         </div>
+        </div>
+        <div id="synthCodePanel" class="snes-code-panel" role="tabpanel" aria-labelledby="synthInputCodeTab" hidden>
+          <div class="snes-code-toolbar"><button id="synthCodeRunButton" class="primary" type="button">Run</button><button id="synthCodeApplyButton" type="button" disabled>Apply</button><button id="synthCodeStopButton" type="button" disabled>Stop</button><span id="synthCodeState" role="status">Idle</span></div>
+          <p class="subtext snes-code-caption">Software performance · the same S-DSP APU as the controls above. Run: Ctrl/Cmd+Enter · Apply: Ctrl/Cmd+Shift+Enter.</p>
+          <div id="synthCodeEditorHost" class="snes-code-editor-host"></div>
+          <textarea id="synthCodeEditor" class="snes-code-editor" spellcheck="false" aria-label="S-DSP performance JavaScript" rows="12" readonly></textarea>
+          <p id="synthCodeEditorNote" class="subtext">Code is saved in Files. Loading a project never runs it automatically.</p>
+          <pre id="synthCodeError" class="snes-code-error" role="alert"></pre>
+          <details class="snes-code-console"><summary>Console</summary><pre id="synthCodeLog" aria-live="polite"></pre></details>
+          <details class="snes-inline-help"><summary aria-label="About S-DSP Code">?</summary><p>Use <code>const snes = await useSoundChip("snes")</code>, then <code>await snes.noteOn(CH1, "C4")</code> and <code>await snes.noteOff(CH1)</code>. Lanes 0–7 share the keyboard allocator and current Wave / BRR / Noise, PMON and Echo. CH1–CH6 alias lanes 0–5; use 6 and 7 for the final lanes. PMON uses two hardware voices per note. Run starts fresh; Apply keeps context and named loops. Stop releases Code notes and retains your instrument. This performance API differs from Playground's raw channel API.</p></details>
+        </div>
       </section>
+        </div>
+        <div id="synthExpandedCodeSlot" class="snes-expanded-code" hidden></div>
+      </div>
       <footer>
-        <p>One SNES S-DSP: eight hardware voices, BRR samples, Gaussian interpolation, hardware Noise, ADSR / GAIN, shared Echo / FIR and adjacent-voice Pitch Modulation. PMON uses two voices per note for four playable notes; the modulator's Envelope / GAIN controls its strength. Noise uses one shared clock, without musical pitch. SPC import reads saved voice settings and optional isolated PMON pairs for audition. Song playback, elapsed envelopes and longer modulation chains are not restored. Wave drawing, audio conversion, ratio settings, keyboard allocation and Pitch wheels are authoring tools. The 64 KiB RAM is shared: Echo reserves 30 KiB, plus 1 KiB for the directory. Active PMON counts both samples; its drawn modulator uses 72 BRR bytes, while an imported BRR uses its full size.</p>
+        <p>Instrument: one SNES S-DSP: eight hardware voices, BRR samples, Gaussian interpolation, hardware Noise, ADSR / GAIN, shared Echo / FIR and adjacent-voice Pitch Modulation. PMON uses two voices per note for four playable notes; the modulator's Envelope / GAIN controls its strength. Noise uses one shared clock, without musical pitch. SPC import reads saved voice settings and optional isolated PMON pairs for audition. SPC song playback uses a separate SPC700 + S-DSP machine through the common Master. Instrument import does not restore elapsed envelopes or longer modulation chains. Wave drawing, audio conversion, ratio settings, keyboard allocation and Pitch wheels are authoring tools. The 64 KiB RAM is shared: Echo reserves 30 KiB, plus 1 KiB for the directory. Active PMON counts both samples; its drawn modulator uses 72 BRR bytes, while an imported BRR uses its full size.</p>
         <div><a href="https://kyorohiro.github.io/hello_ymfm_wasm/playground/index.html?mode=snes">Open Playground</a> · <a href="https://github.com/kyorohiro/hello_ymfm_wasm/blob/main/packages/fm2612/README.md#api-entry-points">API guide</a> · <a href="https://github.com/kyorohiro/hello_ymfm_wasm/blob/main/tetorica_src/runtime/snessynth.js">JavaScript source</a></div>
       </footer>
     </article>
     <noscript><p class="noscript-message">Enable JavaScript to play this synthesizer.</p></noscript>
   </main>
-  <script type="module" src="./synth.js"></script>
+  <script type="module" src="./synth.js?v=adsr-graph-1"></script>
 </body>
 </html>
