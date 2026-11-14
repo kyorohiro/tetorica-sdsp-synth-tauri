@@ -191,7 +191,7 @@ async function run(name, engine, backend) {
     await page.waitForFunction(()=>window.tetoricaSynthAudio&&document.querySelector('#synthPinButton')?.hidden===false&&document.querySelector('#desktop-audio-native'));
     assert.equal(await page.title(),'Tetorica S-DSP Synth');
     assert.match(await page.locator('#synthTitle').textContent(),/Tetorica\s+S-DSP Synth/);
-    assert.equal(await page.locator('#loadPreset').textContent(),'Instrument · S-DSP preset…');
+    assert.equal(await page.locator('#loadPreset').textContent(),'Instrument JSON…');
     assert.equal(await page.evaluate(()=>window.desktopAudit.contexts.length),0);
     await page.click('#synthPinButton');await page.waitForFunction(()=>document.querySelector('#synthPinButton').getAttribute('aria-pressed')==='true');
     await page.click('#synthPinButton');await page.waitForFunction(()=>document.querySelector('#synthPinButton').getAttribute('aria-pressed')==='false');
@@ -302,7 +302,10 @@ async function run(name, engine, backend) {
     current=await wait(value=>value.voices.length===0);assert.deepEqual(current.preset,presetView(nativePreset));await page.keyboard.up('a');
     assert.equal(await page.evaluate(async()=>window.desktopAudit.speakerEdges.has((await window.tetoricaSynthAudio.ensureReady()).output)),true);await audition();
     await page.click('#desktop-audio-native');await page.waitForFunction(()=>document.querySelector('#desktop-audio-status').textContent.startsWith('Native →'));
-    await page.evaluate(()=>{window.desktopAudit.failWrites=true;});await page.keyboard.down('a');
+    // Begin the failure only after the held note exists; idle capture packets
+    // must not fail and recover before the keydown reaches the app.
+    await page.keyboard.down('a');await wait(value=>value.voices.length===1);
+    await page.evaluate(()=>{window.desktopAudit.failWrites=true;});
     await page.waitForFunction(()=>document.querySelector('#desktop-audio-status').textContent.includes('Injected offline device failure'));
     current=await wait(value=>value.voices.length===0);assert.deepEqual(current.preset,presetView(nativePreset));await page.keyboard.up('a');await audition();
     const retainedPair=await savePreset();assert.equal(retainedPair.brr.data,pairPreset.brr.data);assert.equal(retainedPair.pmon.brr.data,pairPreset.pmon.brr.data);
