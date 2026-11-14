@@ -11,7 +11,7 @@ importer = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(importer)
 
 
-def release_files(text=b'<html>test</html>'):
+def release_files(text=b'<html>test</html>', extra_entries=()):
     files = {name: ('source fixture ' + name).encode()
              for name in importer.REQUIRED | importer.NATIVE_INPUTS}
     files.update({
@@ -21,11 +21,13 @@ def release_files(text=b'<html>test</html>'):
         'generated/spc_wasm.js': b'// generated factory',
         'generated/spc_wasm.wasm': b'\x00asm\x01\x00\x00\x00',
     })
+    for name in extra_entries:
+        files[name] = ('// additional entry ' + name).encode()
     for name in ['LICENSE', 'README.md']:
         files['licenses/snes-spc/' + name] = files['sources/third_party/snes-spc/' + name]
     def record(name):
         return {'path': name, 'bytes': len(files[name]), 'sha256': importer.digest(files[name])}
-    entries = ['synth-snes/synth.js', 'synth-snes/processor.js', 'synth-snes/synth.css']
+    entries = ['synth-snes/synth.js', 'synth-snes/processor.js', 'synth-snes/synth.css', *extra_entries]
     modules = [{**record(name), 'sourcePath': 'docs/' + name, 'localImports':
                 ['../generated/spc_wasm.js', '../js/spc.js'] if name.endswith('/processor.js') else []}
                for name in [*entries, 'js/spc.js']]
@@ -57,6 +59,28 @@ def write_archive(path, files):
 
 
 class ImportTests(unittest.TestCase):
+    def test_additional_worklet_entries_are_accepted_only_with_complete_matching_receipts(self):
+        additional = ('js/native-fx-worklet.js', 'js/spc-worklet.js', 'synth-snes/looper-processor.js')
+        files = release_files(extra_entries=additional)
+        self.assertEqual(self.unpack(files), {name: importer.digest(data) for name, data in files.items()})
+        for name in additional:
+            changed = dict(files); changed[name] = b'changed worklet'
+            with self.subTest(name=name), self.assertRaisesRegex(ValueError, 'receipt mismatch'):
+                self.unpack(changed)
+        receipt = json.loads(files['sources/sdsp-synth-browser.json'])
+        receipt['modules'] = [item for item in receipt['modules'] if item['path'] != additional[0]]
+        files['sources/sdsp-synth-browser.json'] = json.dumps(receipt).encode()
+        with self.assertRaisesRegex(ValueError, 'all browser entries'):
+            self.unpack(files)
+
+    def test_additional_worklets_do_not_replace_required_app_entries(self):
+        files = release_files(extra_entries=('js/spc-worklet.js',))
+        receipt = json.loads(files['sources/sdsp-synth-browser.json'])
+        receipt['bundles'] = [item for item in receipt['bundles'] if item['path'] != 'synth-snes/synth.js']
+        files['sources/sdsp-synth-browser.json'] = json.dumps(receipt).encode()
+        with self.assertRaisesRegex(ValueError, 'complete S-DSP Synth entry'):
+            self.unpack(files)
+
     def test_new_zip_updates_without_version_and_preserves_label_for_same_zip(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

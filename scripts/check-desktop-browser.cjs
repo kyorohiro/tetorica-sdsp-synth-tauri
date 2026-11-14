@@ -10,7 +10,7 @@ const root = path.resolve(__dirname, '..');
 const nativeSource = require('node:fs').readFileSync(path.join(root,'src-tauri/src/audio.rs'),'utf8');
 const nativeCredits = Number(/const QUEUE_PACKETS: usize = (\d+);/.exec(nativeSource)[1]);
 const nativePrefillPackets = Number(/const PREFILL_PACKETS: usize = (\d+);/.exec(nativeSource)[1]);
-const options = {out:path.join(root,'docs/desktop_browser_20261106.json'), screenshots:null};
+const options = {webRoot:path.join(root,'dist'),out:path.join(root,'docs/desktop_browser_20261106.json'), screenshots:null};
 for(let index=2;index<process.argv.length;index++) {
   const name=process.argv[index].replace(/^--/,'');
   assert(Object.hasOwn(options,name),`Unknown option: ${name}`);
@@ -64,8 +64,8 @@ async function run(name, engine, backend) {
     if(url.hostname!=='tauri.localhost') {missing.push(url.href);return route.abort();}
     try {
       const file=url.pathname==='/desktop-audio-worklet.js' ? path.join(root,'desktop/audio-worklet.js')
-        :path.resolve(root,'dist','.'+decodeURIComponent(url.pathname==='/'?'/index.html':url.pathname));
-      assert(file.startsWith(path.join(root,'dist')+path.sep)||file===path.join(root,'desktop/audio-worklet.js'));
+        :path.resolve(options.webRoot,'.'+decodeURIComponent(url.pathname==='/'?'/index.html':url.pathname));
+      assert(file.startsWith(options.webRoot+path.sep)||file===path.join(root,'desktop/audio-worklet.js'));
       let body=await fs.readFile(file);
       if(url.pathname==='/synth-snes/synth.js') body=Buffer.concat([body,Buffer.from('\n;\n'+audio)]);
       return route.fulfill({status:200,body,contentType:mime[path.extname(file)]||'application/octet-stream',
@@ -248,7 +248,8 @@ async function run(name, engine, backend) {
     await page.mouse.move(rect.x+rect.width*.2,rect.y+rect.height*.35);await page.mouse.down();
     await page.mouse.move(rect.x+rect.width*.75,rect.y+rect.height*.65,{steps:6});
     assert.deepEqual((await state()).voices,beforeEdit.voices);await page.mouse.up();
-    current=await wait(value=>value.voices.length===0&&JSON.stringify(value.preset.wave)!==JSON.stringify(beforeEdit.preset.wave));
+    current=await wait(value=>value.voices.length===1&&JSON.stringify(value.preset.wave)!==JSON.stringify(beforeEdit.preset.wave));
+    assert.deepEqual(current.voices,beforeEdit.voices);assert.equal(current.generation,beforeEdit.generation);
     assert.equal(current.preset.wave.length,128);await page.keyboard.up('a');await audition();
     console.log(`CHECK ${name}: Menu BRR / WAV and SPC PMON pair import with captured tuning and Echo`);
     const raw=Buffer.from([0xc0,0x77,0x66,0x44,0x22,0x0e,0xcc,0xaa,0x99,0xc3,0x99,0xaa,0xcc,0xee,0x02,0x44,0x66,0x77]);
@@ -305,6 +306,25 @@ async function run(name, engine, backend) {
     await page.waitForFunction(()=>document.querySelector('#desktop-audio-status').textContent.includes('Injected offline device failure'));
     current=await wait(value=>value.voices.length===0);assert.deepEqual(current.preset,presetView(nativePreset));await page.keyboard.up('a');await audition();
     const retainedPair=await savePreset();assert.equal(retainedPair.brr.data,pairPreset.brr.data);assert.equal(retainedPair.pmon.brr.data,pairPreset.pmon.brr.data);
+    let spcNativeSharedRoute=false;
+    if(await page.locator('#spcSongPlay').count()) {
+      console.log(`CHECK ${name}: SPC shares the native Master route without a Web Audio speaker edge`);
+      const song=spc();song.writeUInt16LE(0x0200,0x25);song[0x2b]=0xef;
+      song.set([0xab,0x30,0x2f,0xfc],0x300);song[0x1014c]=0xff;
+      await menu();const chooser=page.waitForEvent('filechooser');await page.click('#synthMenuSpc');await(await chooser).setFiles({name:'desktop-song.spc',mimeType:'application/octet-stream',buffer:song});
+      await page.waitForFunction(()=>document.querySelector('#spcSongTitle').textContent.includes('Desktop PMON'));
+      await page.click('#spcSongPlay');await page.waitForFunction(async()=>await window.desktopAudit.webPeak()>.0001);
+      await page.evaluate(()=>{window.desktopAudit.failWrites=false;window.desktopAudit.nativePeak=0;});
+      await menu();await page.click('#desktop-audio-native');await page.waitForFunction(()=>document.querySelector('#desktop-audio-status').textContent.startsWith('Native →'));
+      await page.waitForFunction(()=>document.querySelector('#spcSongStatus').textContent.startsWith('Paused'));
+      await page.click('#spcSongPlay');await page.waitForFunction(()=>window.desktopAudit.nativePeak>.001);
+      assert.equal(await page.evaluate(async()=>window.desktopAudit.speakerEdges.has((await window.tetoricaSynthAudio.ensureReady()).output)),false);
+      await menu();await page.click('#desktop-audio-web');await page.waitForFunction(()=>document.querySelector('#desktop-audio-status').textContent==='Web Audio output');
+      await page.waitForFunction(()=>document.querySelector('#spcSongStatus').textContent.startsWith('Paused'));
+      assert.equal(await page.evaluate(async()=>window.desktopAudit.speakerEdges.has((await window.tetoricaSynthAudio.ensureReady()).output)),true);
+      await page.click('#spcSongStop');spcNativeSharedRoute=true;
+      for(const id of ['synthMenu','synthMenuAudio','synthPinButton'])assert.equal(await page.locator('#'+id).count(),1);
+    }
     assert.equal(await page.evaluate(()=>window.desktopAudit.contexts.length),1);
     if(options.screenshots)await page.screenshot({path:path.join(options.screenshots,`desktop-${name}.png`),fullPage:true});
     await page.setViewportSize({width:390,height:900});await page.waitForTimeout(120);
@@ -318,7 +338,7 @@ async function run(name, engine, backend) {
       switchStopsAllSourcesAndPitch:true,switchBlocksPerformance:true,nativeSaveCancel:true,presetLoadCancel:true,
       presetV5:true,spcPmonPairImport:true,capturedPitches:[2048,3072],waveDrawing:true,brrMenuImport:true,
       wavMenuImport:true,audioImportCancelKeepsSound:true,embeddedDualBrrSave:true,allSourcesQuiesce:true,eightWaveVoices:true,eightNoiseVoices:true,fourPmonPairs:true,
-      oneAudioContext:true,mobileOverflow:overflow,nativeCredits,nativePrefillPackets,mockedDeviceRate:48000,...measurements,pageErrors:errors,missingAssets:missing,
+      oneAudioContext:true,spcNativeSharedRoute,mobileOverflow:overflow,nativeCredits,nativePrefillPackets,mockedDeviceRate:48000,...measurements,pageErrors:errors,missingAssets:missing,
       nativeHost:'mocked Tauri IPC; no CPAL device',physicalOutput:'muted'};
   } catch(error) {
     console.error(JSON.stringify({engine:name,audioStatus:await page.locator('#audioStatus').textContent().catch(()=>null),errors,missing,consoleErrors}));
@@ -331,8 +351,8 @@ async function run(name, engine, backend) {
   const server=http.createServer(async(request,response)=>{
     try {
       const name=decodeURIComponent(new URL(request.url,'http://localhost').pathname);
-      const file=name==='/desktop-audio-worklet.js'?path.join(root,'desktop/audio-worklet.js'):path.resolve(root,'dist','.'+name);
-      assert(file.startsWith(path.join(root,'dist')+path.sep)||file===path.join(root,'desktop/audio-worklet.js'));
+      const file=name==='/desktop-audio-worklet.js'?path.join(root,'desktop/audio-worklet.js'):path.resolve(options.webRoot,'.'+name);
+      assert(file.startsWith(options.webRoot+path.sep)||file===path.join(root,'desktop/audio-worklet.js'));
       const bytes=await fs.readFile(file);response.writeHead(200,{'content-type':mime[path.extname(file)]||'application/octet-stream','access-control-allow-origin':'*'});response.end(bytes);
     } catch(error){response.writeHead(404,{'access-control-allow-origin':'*'});response.end('Missing test asset');}
   });

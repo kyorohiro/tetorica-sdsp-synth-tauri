@@ -124,3 +124,28 @@ kept separate from the browser evidence. The Intel app was not launched.
 No stage, commit, push, tag, deploy or release action was performed. The
 existing Git metadata and remote were preserved; the parent Web project and
 other Tauri repositories were unchanged.
+
+## Published release follow-up — 2026-11-06
+
+The user subsequently completed signed local macOS builds, created `v0.0.1`
+and published [the GitHub release](https://github.com/kyorohiro/tetorica-sdsp-synth-tauri/releases/tag/v0.0.1)
+at **2026-11-06 20:03 JST**. The release is public, not a draft or prerelease.
+The [tag workflow](https://github.com/kyorohiro/tetorica-sdsp-synth-tauri/actions/runs/42205919267)
+completed successfully, with macOS ARM / Intel, Windows x64 and Linux x64 / ARM64
+installers attached.
+
+Read-only local checks accepted both signed macOS apps as
+`Notarized Developer ID`; `xcrun stapler validate` also succeeded for both apps.
+The tickets are attached to the apps; the DMGs do not have separate stapled tickets.
+The published signed DMGs exactly match their local originals:
+
+| Release asset | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `Tetorica.S-DSP.Synth_0.0.1_aarch64_signed.dmg` | 8,913,715 | `3fb3a14b7e9a1ce584651768d8611b1c359056dbc7a223ab898813ff8b452a3c` |
+| `Tetorica.S-DSP.Synth_0.0.1_x64_signed.dmg` | 9,085,149 | `9fc8dcd514d706ed7540739c365f9c82429a35c5aea512dc484e3de2eeee16a4` |
+
+GitHub asset digests were compared with local SHA-256 values. CI-generated
+unsigned macOS DMGs remain separate assets. This follow-up did not modify
+release assets or publish the release; the user performed those actions.
+Physical installer / runtime checks, listening and prolonged playback remain
+separate from successful builds and signature validation.

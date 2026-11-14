@@ -1,5 +1,6 @@
 """Import an unmodified Synth release; pin archive and extracted file hashes."""
 import argparse
+import importlib.util
 import hashlib
 import io
 import json
@@ -12,6 +13,17 @@ import tempfile
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def prepare_app_version(root, version):
+    if version is None:
+        return None
+    spec = importlib.util.spec_from_file_location(
+        'app_version', Path(__file__).with_name('app_version.py'))
+    helper = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(helper)
+    return helper.prepare_version_update(root, version)
+
 REQUIRED = {
     'index.html', 'synth-snes/index.html', 'synth-snes/synth.js',
     'synth-snes/processor.js', 'synth-snes/synth.css',
@@ -84,10 +96,12 @@ def validate_release(destination, hashes):
             or builder.get('minify') is not False or builder.get('bundle') is not False):
         raise ValueError('Expected readable source-copy browser modules without minification or bundling')
     entries = records(browser.get('bundles'), 'browser entry')
-    if entries.keys() != BROWSER_ENTRIES:
+    # New releases may add independently loaded Worklets. Keep the required
+    # app entries and validate every additional entry against modules/sources.
+    if not BROWSER_ENTRIES <= entries.keys():
         raise ValueError('Expected complete S-DSP Synth entry receipts')
     modules = records(browser.get('modules'), 'readable browser module')
-    if not BROWSER_ENTRIES <= modules.keys():
+    if not entries.keys() <= modules.keys():
         raise ValueError('Expected all browser entries in the readable module receipts')
     original = records(browser.get('originalInputs'), 'original browser input')
     for name, record in modules.items():
@@ -292,13 +306,17 @@ def check(root):
     return lock
 
 
-def import_release(root, archive):
+def import_release(root, archive, version=None):
+    version_update = prepare_app_version(root, version)
     if not archive.is_file():
         raise FileNotFoundError(f'Synth release ZIP not found: {archive}')
     sha = digest(archive.read_bytes())
     previous = root / 'release.lock.json'
-    old_lock = json.loads(previous.read_text()) if previous.exists() else {}
-    version = old_lock.get('version') if old_lock.get('sha256') == sha else f'sha256-{sha[:12]}'
+    old_receipt = previous.read_bytes() if previous.exists() else None
+    old_lock = json.loads(old_receipt) if old_receipt is not None else {}
+    release_version = old_lock.get('version') if old_lock.get('sha256') == sha else f'sha256-{sha[:12]}'
+    local_path = root / LOCAL_MANIFEST
+    old_local = local_path.read_bytes() if local_path.exists() else None
     with tempfile.TemporaryDirectory(prefix='.import-', dir=root) as temporary:
         staging = Path(temporary) / 'dist'
         staging.mkdir()
@@ -307,15 +325,33 @@ def import_release(root, archive):
             browser = json.loads((staging / 'sources/sdsp-synth-browser.json').read_text())
             released_version = browser.get('version')
             if isinstance(released_version, str) and re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._+-]{0,79}', released_version):
-                version = released_version
-        lock = {'version': version, 'archive': archive.name, 'sha256': sha, 'files': hashes}
+                release_version = released_version
+        lock = {'version': release_version, 'archive': archive.name, 'sha256': sha, 'files': hashes}
         destination = root / 'dist'
+        backup = Path(temporary) / 'previous-dist'
         if destination.exists():
-            destination.rename(Path(temporary) / 'previous-dist')
-        staging.rename(destination)
-        previous.write_text(json.dumps(lock, indent=2, sort_keys=True) + '\n')
-        (root / LOCAL_MANIFEST).unlink(missing_ok=True)
-    print(f'Imported {version}: {len(hashes)} files, SHA256 {sha}')
+            destination.rename(backup)
+        try:
+            staging.rename(destination)
+            previous.write_text(json.dumps(lock, indent=2, sort_keys=True) + '\n')
+            local_path.unlink(missing_ok=True)
+            if version_update is not None:
+                version_update.apply()
+        except BaseException:
+            if destination.exists():
+                shutil.rmtree(destination)
+            if backup.exists():
+                backup.rename(destination)
+            if old_receipt is None:
+                previous.unlink(missing_ok=True)
+            else:
+                previous.write_bytes(old_receipt)
+            if old_local is not None:
+                local_path.write_bytes(old_local)
+            raise
+    print(f'Imported {release_version}: {len(hashes)} files, SHA256 {sha}')
+    if version_update is not None:
+        print(f'App version set to {version_update.version} (metadata and lockfiles)')
     return lock
 
 
@@ -325,9 +361,12 @@ def main():
     actions = parser.add_mutually_exclusive_group()
     actions.add_argument('--check', action='store_true')
     actions.add_argument('--record-local-changes', action='store_true')
+    parser.add_argument('--version', help='Set the Tauri app version (X.Y.Z) during ZIP import')
     args = parser.parse_args()
     if (args.check or args.record_local_changes) and args.zip is not None:
         parser.error('choose a ZIP import, --check, or --record-local-changes')
+    if (args.check or args.record_local_changes) and args.version is not None:
+        parser.error('--version is only available with a ZIP import')
     if not args.check and not args.record_local_changes and args.zip is None:
         parser.error('provide the ZIP path: npm run import:release -- ./xxx.zip')
     try:
@@ -341,7 +380,7 @@ def main():
         elif args.record_local_changes:
             record_local_changes(ROOT)
         else:
-            import_release(ROOT, args.zip)
+            import_release(ROOT, args.zip, version=args.version)
     except (OSError, ValueError, zipfile.BadZipFile) as error:
         parser.error(str(error))
 

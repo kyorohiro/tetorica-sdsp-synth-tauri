@@ -91,6 +91,8 @@ Obtain a readable S-DSP Synth ZIP from the parent project, then run:
 
 ```sh
 npm run import:release -- /path/to/tetorica_sdsp_synth_VERSION_itch.zip
+# Optionally set the desktop app version, independent of the ZIP filename:
+npm run import:release -- /path/to/any-name.zip --version 1.2.3
 python3 scripts/import_release.py --check
 ```
 
@@ -99,6 +101,16 @@ receipts, original browser source archive, WASM / native source receipts and
 required license notices before replacing `dist/`. Both `dist/` and
 `release.lock.json` belong in Git. `.gitattributes` preserves their bytes on
 Windows and other checkout platforms.
+
+`--version X.Y.Z` also updates `package.json`, `package-lock.json`,
+`src-tauri/Cargo.toml`, the local app package in `src-tauri/Cargo.lock`, and
+`src-tauri/tauri.conf.json` after the ZIP is validated. Dependency versions and
+the Web provenance label in `release.lock.json` are preserved. Without this
+flag, the existing ZIP-only import leaves the desktop app version unchanged.
+Invalid versions, metadata or archives are rejected before replacement; a
+failed metadata update restores the previous import and local-edit record.
+Verify and release-build first, then commit the imported files together with
+all changed metadata/lockfiles and tag that final commit.
 
 ## Verification and CI
 

@@ -63,6 +63,9 @@
   function mountToolbar() {
     const host = document.getElementById('synthDesktopTools');
     if (!host || host.dataset.toolbarMounted) return;
+    // New Web assets own the menu and its Import/Export hosts. Reuse it;
+    // native Audio, Reload and Pin bind independently in mount().
+    if (host.dataset.webMenu === 'true') {host.dataset.toolbarMounted = 'true'; return;}
     const identity = document.querySelector('.product-identity');
     const pin = document.getElementById('synthPinButton');
     const audio = document.getElementById('synthMenuAudio');
