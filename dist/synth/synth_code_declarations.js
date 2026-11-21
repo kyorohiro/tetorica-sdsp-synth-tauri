@@ -6,6 +6,7 @@ export const SYNTH_CODE_GLOBALS=Object.freeze([
   'stopLoop','stopAllLoops','liveCleanup','trackAsync','parseNoteName','toPitch','noteToBlockFnum','noteLerp','hzToBlockFnum',
   'midiToNoteName','scale','chord','lerp','choose','cycle','rand','rrange','randInt','pg',
   'readVab','prepareVabTone','exportVab','MAX_VAB_FILE_BYTES',
+  'assembleScspDsp','disassembleScspDsp',
 ]);
 
 /** Read whole top-level type/interface/ambient declarations, including multiline
@@ -38,7 +39,7 @@ function declarations(source) {
 
 const CODE_TYPES=`
 /** Borrowed Synth instruments; methods use the upper editor's current sound. */
-type SynthCodeFm = Omit<FMApi, 'setClock'> & {readonly id:string; dispose():void};
+type SynthCodeFm = Omit<YM2612FMApi, 'setClock'> & {readonly id:string; dispose():void};
 type SynthCodePsg = Omit<PSGApi, 'keyOn'|'keyOff'|'resetAll'> & {
   readonly id:string; readonly clock:number;
   /** Tone 0..2 or Noise 3, using the current Synth attenuation/envelope. */
@@ -71,7 +72,15 @@ type SynthCodePcm = Omit<PlaygroundRf5c164, 'setRootNote'|'setNote'|'noteOn'|'no
 };
 type SynthCodePcmChannel = 0|1|2|3|4|5|6|7;
 type SynthCodePwm = PlaygroundPWM32X & PlaygroundChipClock & {readonly id:string};
-type SynthCodeSoundChipMap = {ym2612:SynthCodeFm; segapsg:SynthCodePsg; rf5c164:SynthCodePcm; pwm:SynthCodePwm};
+/** One authored track and cursor, shared with the CD-DA tab. */
+type SynthCodeCdda = Omit<PlaygroundCddaAPI,'list'> & {
+  readonly id:string;readonly chip:'cdda';readonly sourceId:string;
+  /** Read the already loaded track metadata without an audio-side request. */
+  list():ReadonlyArray<PlaygroundCddaTrack>;
+  /** Release this lease; retain the authored source and track selection. */
+  dispose():Promise<void>;
+};
+type SynthCodeSoundChipMap = {ym2612:SynthCodeFm; segapsg:SynthCodePsg; rf5c164:SynthCodePcm; cdda:SynthCodeCdda; pwm:SynthCodePwm};
 type PlaygroundSelectedFmChannel = YM2612Channel;
 type PlaygroundLivePrepareAPI = SynthCodeAPI;
 declare const fm:SynthCodeFm;
@@ -108,11 +117,15 @@ export function selectCodeHostDeclarations(source,{globals:globalNames,customTyp
     [...selected.values(),...roots].map(value=>value.text).join('\n\n')+'\n';
 }
 
-/** Narrow globals, clients and livePrepare/pg to the actual four-chip host.
+/** Narrow globals, clients and livePrepare/pg to the actual Synth sources.
  * Type bodies (FM parameters, effect controls, note lengths) remain shared. */
 export function selectSynthCodeDeclarations(source) {
   return selectCodeHostDeclarations(source,{globals:SYNTH_CODE_GLOBALS,customTypes:CODE_TYPES,apiName:'SynthCodeAPI',
-    banner:'Synth Code: four shared instruments, no independent chip factory.',transformTypes(types) {
+    banner:'Synth Code: five shared sound sources, no independent chip factory.',transformTypes(types) {
+      const cdda=types.get('PlaygroundCddaState');
+      if(!cdda)throw Error('Shared CD-DA declarations are missing.');
+      types.set(cdda.name,{...cdda,text:cdda.text.replace("state:'ready'|'playing'|'paused'|'ended'","state:'empty'|'ready'|'playing'|'paused'|'ended'")
+        .replace(/=\s*\{/,`= {\n  sourceId:string;revision:number;`)});
       const pcm=types.get('PlaygroundRf5c164');
       if(!pcm)throw Error('Shared PCM declarations are missing.');
       types.set(pcm.name,{...pcm,text:pcm.text

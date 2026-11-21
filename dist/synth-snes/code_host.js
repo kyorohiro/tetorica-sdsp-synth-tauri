@@ -20,7 +20,7 @@ liveLoop("melody", async () => {
 `;
 const aborted=()=>new DOMException('S-DSP Code stopped','AbortError');
 export function setupSnesCodeHost({ensureAudio,getAudio,getSettings,applySettings,stopKeyboard,
-  onBeforeRun=async()=>{},onOpenSource=async()=>false,stopLooper=async()=>{},clearLooper=stopLooper,stopSong=async()=>{},onActivity=()=>{},setStatus=()=>{}}={}){
+  onBeforeRun=async()=>{},onOpenSource=async()=>false,stopLooper=async()=>{},clearLooper=stopLooper,stopSong=async()=>{},onActivity=()=>{},onViewChange=()=>{},onExpandedChange=()=>{},setStatus=()=>{}}={}){
   let disposed=false,epoch=0,modeEpoch=0,runtime=null,controls=null,files=null;
   const project=createSnesCodeProject({settings:getSettings(),getStarterCode:()=>SNES_STARTER_CODE});
   const audio=createSnesCodeAudio({ensureReady:ensureAudio,getAudio,onLog:line=>controls?.appendLog(line)});
@@ -36,7 +36,7 @@ export function setupSnesCodeHost({ensureAudio,getAudio,getSettings,applySetting
     if(!disposed&&request===modeEpoch&&!runtime?.getState().running)audio.open();
     onActivity();
   }
-  files=setupSnesCodeFiles({project,getSettings,applySettings,setStatus,onOpenSource,
+  files=setupSnesCodeFiles({project,getStarterCode:()=>SNES_STARTER_CODE,getSettings,applySettings,setStatus,onOpenSource,
     async onBeforeSoundApply(){if(!runtime?.getState().running)await stopKeyboard();},
     async onBeforeWorkspaceReplace(){await clearLooper();await stopSong();await stop();await stopKeyboard();}});
   function getRuntime(){
@@ -60,7 +60,7 @@ export function setupSnesCodeHost({ensureAudio,getAudio,getSettings,applySetting
     return runtime;
   }
   controls=setupSynthCodeControls({project,files,getRuntime,
-    keepRunningOnKeyboard:true,
+    keepRunningOnKeyboard:true,persistentExpanded:true,onViewChange,onExpandedChange,
     allowTextFiles:true,maxTextLength:SNES_PROJECT_FILE_BYTES,writeText:(path,source)=>project.writeEditorText(path,source),
     editorChip:'snes',transformDeclarations:selectSnesCodeDeclarations,
     journalKey:'tetorica-snes-synth-pending-code',getStarterCode:()=>SNES_STARTER_CODE,

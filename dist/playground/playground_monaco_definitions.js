@@ -9,10 +9,32 @@ export function definitionSource(text, position, chip = 'ym2612', options = {}) 
   const prefix = lines.slice(0, position?.startLineNumber ?? position?.lineNumber ?? 1).join('\n');
   const owners = [...prefix.matchAll(/^(?:declare\s+)?(?:interface|type)\s+(\w+)/gm)];
   const owner = owners.at(-1)?.[1] ?? '';
+  if (symbol === 'assembleScspDsp' || symbol === 'disassembleScspDsp')
+    return {file:'scsp_dsp_assembler.js',symbol};
   // Member names such as play/stop belong to their declared media interface,
   // before similarly named global music helpers are considered.
   if(owner==='SnesCodeClient'&&['noteOn','noteOff','getState','allNotesOff','dispose'].includes(symbol))
     return {file:'synth-snes/code_client.js',symbol};
+  if(owner==='NesCodeClient'&&['noteOn','keyOn','getState','allNotesOff','dispose'].includes(symbol))
+    return {file:'synth-2a03/code_endpoint.js',symbol:'createNesCodeClient'};
+  if(owner==='AswanCodeClient'&&['getState','noteOff','dispose'].includes(symbol))
+    return {file:'synth-aswan/code_endpoint.js',symbol:'createAswanCodeClient'};
+  if(owner==='ScspCodeClient')
+    return {file:'synth-scsp/code_endpoint.js',symbol:'createScspCodeClient'};
+  if(owner==='Fm2608CodeClient') {
+    if(['setTimerA','setCsm','setChannel3Mode','getChannel3State'].includes(symbol))
+      return {file:'synth-fm2608/sound_state.js',symbol:symbol==='setCsm'?'installChannel3Controls':symbol};
+    if(symbol==='capturePreset')return {file:'synth-fm2608/audio.js',symbol};
+    if(['allNotesOff','dispose'].includes(symbol))return {file:'synth-fm2608/code_client.js',symbol};
+    if(['ssg','rhythm','adpcm'].includes(symbol))return {file:'ym2608synth.js',symbol:'YM2608Synth'};
+    const declaration=prefix.slice(owners.at(-1).index);
+    const section=[...declaration.matchAll(/^\s*(ssg|rhythm|adpcm)\s*:\s*\{/gm)].at(-1)?.[1];
+    if(section==='ssg')return {file:'ssgsynth.js',symbol:'SSGSynth.'+symbol};
+    if(section==='rhythm')return {file:'ym2608synth.js',symbol:'YM2608RhythmSynth.'+symbol};
+    if(section==='adpcm')return {file:'ym2608synth.js',symbol:'YM2608AdpcmSynth.'+symbol};
+    if(['keyOff','setModulation'].includes(symbol))return {file:'opn_fm_synth.js',symbol};
+    return {file:'ym2608synth.js',symbol:'YM2608Synth'};
+  }
   if(owner==='PlaygroundMsm5205API')return {file:'msm5205_player.js',symbol};
   if(owner==='PlaygroundCddaAPI')return {file:'cdda_player.js',symbol};
   if(/^Huc6280Code(?:Msm5205|Cdda)$/.test(owner)&&symbol==='dispose')return {file:'synth-huc6280/cdrom2_audio.js',symbol:'createHuc6280Cdrom2Audio'};
@@ -26,6 +48,12 @@ export function definitionSource(text, position, chip = 'ym2612', options = {}) 
     if(['parseNoteName','toPitch','midiToNoteName','lerp','choose','rand','rrange','randInt'].includes(symbol))return {file:'playground_music.js',symbol};
     if(symbol==='hzToBlockFnum')return {file:'soundchip_pitch.js',symbol:'opnPitchFromHz'};
   }
+  if(/^PlaygroundSid(?:OperationRecorder|OperationProgram|RecordedOperation|RecordedCalls)$/.test(owner))return {file:'sid_operations.js',symbol:'buildSidOperations'};
+  if(/^PlaygroundSid(?:StateSnapshot|OperationState)$/.test(owner))return {file:'sid_timed_state.js',symbol:'createSidTimedSnapshot'};
+  if(owner==='PlaygroundSidCompiledWrite')return {file:'sid_operations.js',symbol:'compileSidOperations'};
+  if(/^PlaygroundSid(?:CompileOptions|ScheduleOptions|ScheduleReceipt)$/.test(owner)||
+      ['PlaygroundSid','PlaygroundPrimarySid'].includes(owner)&&['build','compile','captureState','schedule','clearSchedule'].includes(symbol))
+    return symbol==='build'?{file:'sid_operations.js',symbol:'buildSidOperations'}:{file:'sid_timed_client.js',symbol:'attachSidTimedClient'};
   if (symbol === 'sid') return {file:'playground_sid.js',symbol:'createSidClient'};
   if (/^Playground(?:Primary)?Sid$/.test(owner) && ['readRegister','getState','setClock'].includes(symbol)) return {file:'playground_sid.js',symbol:'createSidRegisterClient'};
   if (/^Playground(?:Primary)?Sid/.test(owner)) return {file:'sidsynth.js',symbol:/^Playground/.test(symbol)?'SidSynth':symbol};
@@ -46,9 +74,36 @@ export function definitionSource(text, position, chip = 'ym2612', options = {}) 
   if (owner === 'PlaygroundSecondsTimeline') return {file:'playground_clock.js',symbol};
   if (['hzToBlockFnum', 'createPitchFromMidi'].includes(symbol)) return {file:'pitch.js', symbol};
   if (['noteToBlockFnum', 'play', 'scale', 'chord', 'noteLerp'].includes(symbol)) return {file:'playground_music.js', symbol};
+  if(/^PlaygroundPs1Operation(?:Program|Recorder)$/.test(owner))return {file:'ps1_operations.js',symbol:'buildPs1Operations'};
+  if(owner==='PlaygroundPs1StateSnapshot')return {file:'ps1_timed_state.js',symbol:'createPs1TimedSnapshot'};
+  if(owner==='PlaygroundPs1CompiledWrite')return {file:'ps1_operations.js',symbol:'compilePs1Operations'};
+  if(['PlaygroundPs1','PlaygroundPrimaryPs1','SpuCodeClient'].includes(owner)&&['build','compile','captureState','schedule','clearSchedule'].includes(symbol))
+    return symbol==='build'?{file:'ps1_operations.js',symbol:'buildPs1Operations'}:{file:'ps1_timed_client.js',symbol:'attachPs1TimedClient'};
   if (/^Playground(?:Primary)?Ps1/.test(owner)||owner==='SpuCodeClient') return {file:'ps1synth.js',symbol:/^(?:Playground|SpuCodeClient)/.test(symbol)?'Ps1Synth':symbol};
+  if (/^Playground(?:Primary)?Scsp/.test(owner)) return {file:'scspsynth.js',symbol:owner==='PlaygroundScsp'&&!/^Playground/.test(symbol)?'ScspSynth.'+symbol:'ScspSynth'};
+  if(owner==='PlaygroundNesOperationRecorder')return ['atSample','atSeconds'].includes(symbol)?{file:'nes_operations.js',symbol:'buildNesOperations'}:{file:'nesapusynth.js',symbol};
+  if(owner==='PlaygroundNes'&&['build','compile','schedule','captureState','clearSchedule'].includes(symbol))return {file:'nes_timed_client.js',symbol:'attachNesTimedClient'};
   if (/^PlaygroundNes$/.test(owner)) return {file:'nesapusynth.js', symbol};
-  if (/^PlaygroundGameboy$/.test(owner)) return {file:'gameboysynth.js', symbol};
+  if(/^PlaygroundGameboy(?:OperationRecorder|OperationProgram|RecordedOperation)$/.test(owner))return {file:'gameboy_operations.js',symbol:'buildGameboyOperations'};
+  if(/^PlaygroundGameboy(?:StateSnapshot|OperationState)$/.test(owner))return {file:'gameboy_timed_state.js',symbol:'createGameboyTimedSnapshot'};
+  if(owner==='PlaygroundGameboyCompiledWrite')return {file:'gameboy_operations.js',symbol:'compileGameboyOperations'};
+  if(/^PlaygroundGameboy(?:CompileOptions|ScheduleOptions|ScheduleReceipt)$/.test(owner)||
+      ['PlaygroundGameboy','PlaygroundPrimaryGameboy','GameboyCodeClient'].includes(owner)&&['build','compile','captureState','schedule','clearSchedule'].includes(symbol))
+    return symbol==='build'?{file:'gameboy_operations.js',symbol:'buildGameboyOperations'}:{file:'gameboy_timed_client.js',symbol:'attachGameboyTimedClient'};
+  if (/^Playground(?:Primary)?Gameboy$/.test(owner)) return {file:'gameboysynth.js', symbol};
+  if(owner==='PlaygroundWonderSwanOperationRecorder'||owner==='PlaygroundWonderSwanOperationProgram')return {file:'wonderswan_operations.js',symbol:'buildWonderSwanOperations'};
+  if(owner==='PlaygroundWonderSwanStateSnapshot')return {file:'wonderswan_timed_state.js',symbol:'createWonderSwanTimedSnapshot'};
+  if(owner==='PlaygroundWonderSwanCompiledWrite')return {file:'wonderswan_operations.js',symbol:'compileWonderSwanOperations'};
+  if(['PlaygroundWonderSwan','PlaygroundPrimaryWonderSwan'].includes(owner)&&['build','compile','captureState','schedule','clearSchedule'].includes(symbol))
+    return symbol==='build'?{file:'wonderswan_operations.js',symbol:'buildWonderSwanOperations'}:{file:'wonderswan_timed_client.js',symbol:'attachWonderSwanTimedClient'};
+  if (/^Playground(?:Primary)?WonderSwan(?:TimelineBuilder)?$/.test(owner)) return {file:'wonderswansynth.js',symbol:/^Playground/.test(symbol)?'WonderSwanSynth':symbol};
+  if(/^PlaygroundHuc6280(?:OperationRecorder|RecordedMethod|OperationTime|RecordedOperation|OperationProgram)$/.test(owner))
+    return {file:'huc6280_operations.js',symbol:'buildHuc6280Operations'};
+  if(owner==='PlaygroundHuc6280StateSnapshot'||owner==='PlaygroundHuc6280OperationState')return {file:'huc6280_timed_state.js',symbol:'createHuc6280TimedSnapshot'};
+  if(owner==='PlaygroundHuc6280CompiledWrite')return {file:'huc6280_operations.js',symbol:'compileHuc6280Operations'};
+  if(/^PlaygroundHuc6280(?:CompileOptions|ScheduleOptions|ScheduleReceipt)$/.test(owner)||
+      ['PlaygroundHuc6280','PlaygroundPrimaryHuc6280','Huc6280CodeClient'].includes(owner)&&['build','compile','captureState','schedule','clearSchedule'].includes(symbol))
+    return symbol==='build'?{file:'huc6280_operations.js',symbol:'buildHuc6280Operations'}:{file:'huc6280_timed_client.js',symbol:'attachHuc6280TimedClient'};
   if(owner==='Huc6280CodeClient'&&['getState','noteOn','noteOff','dispose'].includes(symbol))
     return {file:'synth-huc6280/instrument.js',symbol:{getState:'observeCode',noteOn:'_liveNoteOn',noteOff:'noteOff',dispose:'stop'}[symbol]};
   if(/^Playground(?:Primary)?Huc6280/.test(owner)||owner==='Huc6280CodeClient')
@@ -59,8 +114,48 @@ export function definitionSource(text, position, chip = 'ym2612', options = {}) 
   if (/^PlaygroundSpc$/.test(owner)) return {file:'playground_spc.js', symbol};
   if (/^PlaygroundYm2608$/.test(owner)) return {file:'ym2608synth.js', symbol};
   if (/^PlaygroundRf5c164$/.test(owner)) return {file:'rf5c164synth.js', symbol};
+  for (const [prefix, file, build, compile, snapshot, attach, aliases] of [
+    ['PlaygroundSegaPsg', 'segapsg', 'buildPsgOperations', 'compilePsgOperations', 'createPsgTimedSnapshot', 'attachPsgTimedClient', ['SmsGearPsg']],
+    ['PlaygroundYm2413', 'ym2413', 'buildOpllOperations', 'compileOpllOperations', 'createOpllTimedSnapshot', 'attachOpllTimedClient', ['PlaygroundPrimaryYm2413', 'SmsGearOpll']],
+  ]) {
+    if (owner === prefix + 'OperationProgram' || owner === prefix + 'OperationRecorder' || owner === prefix + 'BuildOptions')
+      return {file:file + '_operations.js', symbol:build};
+    if (owner === prefix + 'StateSnapshot') return {file:file + '_timed_state.js', symbol:snapshot};
+    if (owner === prefix + 'CompiledWrite') return {file:file + '_operations.js', symbol:compile};
+    if (owner === prefix + 'TimedApi' || [prefix, ...aliases].includes(owner) && ['build','compile','captureState','schedule','clearSchedule'].includes(symbol))
+      return symbol === 'build' ? {file:file + '_operations.js', symbol:build} : {file:file + '_timed_client.js', symbol:attach};
+  }
   if (/^(?:PlaygroundSegaPsg|PSGApi)$/.test(owner)) return {file:'segapsgsynth.js', symbol};
   if (/^Playground(?:Primary)?(?:Opll|Ym2413)/.test(owner)) return {file:'ym2413synth.js',symbol:/^Playground/.test(symbol) ? 'YM2413Synth' : symbol};
+  if (owner === 'PlaygroundYm2608RhythmRecorder' || owner === 'PlaygroundYm2608AdpcmRecorder') return {file:'ym2608synth.js',symbol};
+  if (owner === 'PlaygroundYm2608SsgRecorder') return {file:'ssgsynth.js',symbol};
+  if (owner === 'PlaygroundYm2608OperationRecorder' || /^PlaygroundYm2608(?:BuildOptions|OperationProgram)$/.test(owner))
+    return {file:'ym2608_operations.js',symbol:'buildYm2608Operations'};
+  if (owner === 'PlaygroundYm2608StateSnapshot') return {file:'ym2608_timed_state.js',symbol:'createYm2608TimedSnapshot'};
+  if (owner === 'PlaygroundYm2608CompiledWrite') return {file:'ym2608_operations.js',symbol:'compileYm2608Operations'};
+  if (/^PlaygroundYm2608(?:TimedApi|CompileOptions|ScheduleOptions|ScheduleReceipt)$/.test(owner) ||
+      ['YM2608FMApi','PlaygroundYm2608','Fm2608CodeClient'].includes(owner) && ['build','compile','captureState','schedule','clearSchedule'].includes(symbol))
+    return symbol === 'build' ? {file:'ym2608_operations.js',symbol:'buildYm2608Operations'} : {file:'ym2608_timed_client.js',symbol:'attachYm2608TimedClient'};
+  if (owner === 'PlaygroundYm2612OperationRecorder' || /^PlaygroundYm2612(?:BuildOptions|OperationProgram)$/.test(owner))
+    return {file:'ym2612_operations.js',symbol:'buildYm2612Operations'};
+  if (owner === 'PlaygroundYm2612StateSnapshot') return {file:'ym2612_timed_state.js',symbol:'createYm2612TimedSnapshot'};
+  if (owner === 'PlaygroundYm2612CompiledWrite') return {file:'ym2612_operations.js',symbol:'compileYm2612Operations'};
+  if (/^PlaygroundYm2612(?:TimedApi|CompileOptions|ScheduleOptions|ScheduleReceipt)$/.test(owner) ||
+      ['YM2612FMApi','PlaygroundCreatedFm','SynthCodeFm'].includes(owner) && ['build','compile','captureState','schedule','clearSchedule'].includes(symbol))
+    return symbol === 'build' ? {file:'ym2612_operations.js',symbol:'buildYm2612Operations'} : {file:'ym2612_timed_client.js',symbol:'attachYm2612TimedClient'};
+  if (owner === 'PlaygroundAy8910OperationRecorder' ||
+      /^PlaygroundAy8910(?:BuildOptions|RecordedMethod|OperationTime|RecordedOperation|OperationProgram)$/.test(owner)) {
+    return {file:'ay8910_operations.js',symbol:'buildAyOperations'};
+  }
+  if (owner === 'PlaygroundAy8910StateSnapshot') return {file:'ay8910_timed_state.js',symbol:'createAyTimedSnapshot'};
+  if (owner === 'PlaygroundAy8910CompiledWrite') return {file:'ay8910_operations.js',symbol:'compileAyOperations'};
+  if (/^PlaygroundAy8910(?:CompileOptions|ScheduleOptions|ScheduleReceipt)$/.test(owner))
+    return {file:'ay8910_timed_client.js',symbol:'attachAyTimedClient'};
+  if ((/^Playground(?:Primary)?Ay8910$/.test(owner) || owner === 'YmCodeClient') &&
+      ['build','compile','captureState','schedule','clearSchedule'].includes(symbol)) {
+    return symbol === 'build' ? {file:'ay8910_operations.js',symbol:'buildAyOperations'} :
+      {file:'ay8910_timed_client.js',symbol:'attachAyTimedClient'};
+  }
   if (/^Playground(?:Primary)?(?:Ay8910|AY8910)/.test(owner)) return {file:'ay8910synth.js',symbol:/^Playground/.test(symbol) ? 'AY8910Synth' : symbol};
   if (/^Playground(?:Primary)?Opl/.test(owner)) return {file:'opl_synth.js',symbol:/^Playground(?:Primary)?Opl/.test(symbol) ? 'OPLSynth' : symbol};
   if (/^PlaygroundPWM32X$/.test(owner)) return {file:'pwm32x_playback.js', symbol};
@@ -71,6 +166,16 @@ export function definitionSource(text, position, chip = 'ym2612', options = {}) 
 }
 
 export function sourcePosition(text, symbol) {
+  const qualified=/^([A-Za-z_$][\w$]*)\.([A-Za-z_$][\w$]*)$/.exec(symbol);
+  if(qualified) {
+    const [,className,method]=qualified;
+    const start=new RegExp(`^(?:export\\s+)?class\\s+${className}\\b`,'m').exec(text);
+    if(!start)return {lineNumber:1,column:1};
+    const remainder=text.slice(start.index),next=/\n(?:export\s+)?class\s/.exec(remainder);
+    const body=next?remainder.slice(0,next.index):remainder;
+    const point=sourcePosition(body,method);
+    return {lineNumber:text.slice(0,start.index).split('\n').length+point.lineNumber-1,column:point.column};
+  }
   const escaped = symbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const pattern = new RegExp(`^\\s*(?:(?:export\\s+)?(?:default\\s+)?(?:(?:async\\s+)?function\\s+|(?:const|let|var|class)\\s+))?(?:async\\s+)?${escaped}\\s*(?:\\(|:|=|\\{)`, 'm');
   // Small runtime facades may put several object methods on one line. Match
